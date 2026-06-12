@@ -1,0 +1,46 @@
+{
+  "shopify": {
+    "enabled": false,
+    "store_url": "https://your-store.myshopify.com",
+    "access_token": "YOUR_SHOPIFY_ACCESS_TOKEN",
+    "shop_id": "",
+    "anomaly_threshold_pct": 20.0,
+    "check_interval_minutes": 60
+  },
+  "woo": {
+    "enabled": true,
+    "store_url": "sql_hiugift_com",
+    "shop_id": "89.117.22.200",
+    "access_token": "QQ33945551",
+    "api_key": "sql_hiugift_com",
+    "api_secret": "d441c6b635d2e8",
+    "anomaly_threshold_pct": 20.0,
+    "check_interval_minutes": 60
+  },
+  "meta": {
+    "enabled": false,
+    "ad_account_id": "act_XXXXXXXXXX",
+    "access_token": "YOUR_META_ACCESS_TOKEN",
+    "anomaly_threshold_pct": 20.0,
+    "check_interval_minutes": 60
+  },
+  "tiktok": {
+    "enabled": false,
+    "ad_account_id": "YOUR_TIKTOK_AD_ACCOUNT_ID",
+    "access_token": "YOUR_TIKTOK_ACCESS_TOKEN",
+    "anomaly_threshold_pct": 20.0,
+    "check_interval_minutes": 60
+  },
+  "google": {
+    "enabled": true,
+    "api_key": "0bb476432bd1f43f88bdab679f28eec64d6a7e50ddb411bed6ec099fb057a461",
+    "anomaly_threshold_pct": 30.0,
+    "check_interval_minutes": 60
+  },
+  "event_store_path": "reality/events.db",
+  "event_bus_enabled": true,
+  "kg_update_enabled": true,
+  "alert_enabled": true,
+  "log_level": "INFO",
+  "aggregation_window_minutes": 60
+}

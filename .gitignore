@@ -1,0 +1,22 @@
+# Archives (not source code)
+hvos_v7/
+hvos_v8_archive/
+
+# Binary
+*.db
+*.zip
+*.tar
+*.tar.gz
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.pytest_cache/
+
+# Test files
+test_*.py
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,3 @@
+# HVOS Reality Layer — Python 依赖
+requests>=2.31.0
+pytrends>=4.9.2

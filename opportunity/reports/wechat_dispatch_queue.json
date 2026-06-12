@@ -1,0 +1,51 @@
+[
+  {
+    "report_path": "C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\opportunity\\reports\\opp_Garden_Glove_20260611_1144.html",
+    "opportunity_name": "Garden Glove",
+    "alpha_score": 78.5,
+    "recommendation": "STRONG_BUY",
+    "queued_at": "2026-06-11T11:44:51.048312"
+  },
+  {
+    "report_path": "C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\opportunity\\reports\\opp_Garden_Glove_Pro_20260611_1146.html",
+    "opportunity_name": "Garden Glove Pro",
+    "alpha_score": 82.0,
+    "recommendation": "STRONG_BUY",
+    "queued_at": "2026-06-11T11:46:14.324781"
+  },
+  {
+    "report_path": "C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\opportunity\\reports\\opp_Garden_Glove_V10_20260611_1146.html",
+    "opportunity_name": "Garden Glove V10",
+    "alpha_score": 82.0,
+    "recommendation": "STRONG_BUY",
+    "queued_at": "2026-06-11T11:46:51.964108"
+  },
+  {
+    "report_path": "C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\opportunity\\reports\\opp_Garden_Glove_20260611_1147.html",
+    "opportunity_name": "Garden Glove",
+    "alpha_score": 82,
+    "recommendation": "STRONG_BUY",
+    "queued_at": "2026-06-11T11:47:16.327448"
+  },
+  {
+    "report_path": "C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\opportunity\\reports\\opp_Garden_Glove_Pro_20260611_1214.html",
+    "opportunity_name": "Garden Glove Pro",
+    "alpha_score": 78.5,
+    "recommendation": "STRONG_BUY",
+    "queued_at": "2026-06-11T12:14:30.448652"
+  },
+  {
+    "report_path": "C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\opportunity\\reports\\opp_Garden_Glove_Pro_20260611_1337.html",
+    "opportunity_name": "Garden Glove Pro",
+    "alpha_score": 82.0,
+    "recommendation": "STRONG_BUY",
+    "queued_at": "2026-06-11T13:37:06.063138"
+  },
+  {
+    "report_path": "C:/Users/Administrator/AppData/Local/hermes/hvos/opportunity/reports/opp_TOP5_20260612_0604.html",
+    "opportunity_name": "HVOS TOP5 报告 20260612_0604",
+    "alpha_score": 37.1,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-12T06:04:32.842110"
+  }
+]

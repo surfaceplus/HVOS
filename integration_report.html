@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HVOS × CausaMem 集成报告 v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; padding: 20px; }
+  .container { max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; color: #58a6ff; margin-bottom: 8px; }
+  .subtitle { color: #8b949e; font-size: 0.85rem; margin-bottom: 24px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .card h2 { font-size: 1rem; color: #58a6ff; margin-bottom: 12px; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .badge-green { background: #238636; color: #fff; }
+  .badge-red { background: #da3633; color: #fff; }
+  .badge-yellow { background: #9e6a03; color: #fff; }
+  .badge-blue { background: #1f6feb; color: #fff; }
+  .badge-purple { background: #8957e5; color: #fff; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #30363d; }
+  th { color: #8b949e; font-weight: 500; }
+  .mono { font-family: 'Cascadia Code', monospace; font-size: 0.8rem; color: #79c0ff; }
+  .fix-item { display: flex; align-items: flex-start; margin-bottom: 14px; gap: 10px; }
+  .fix-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .fix-title { font-weight: 600; color: #e6edf3; margin-bottom: 2px; }
+  .fix-desc { font-size: 0.8rem; color: #8b949e; line-height: 1.4; }
+  .metric { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #21262d; }
+  .metric:last-child { border-bottom: none; }
+  .metric-label { color: #8b949e; font-size: 0.85rem; }
+  .metric-value { font-weight: 700; font-size: 0.95rem; }
+  .highlight { color: #3fb950; }
+  .warn { color: #d29922; }
+  .danger { color: #f85149; }
+  .footer { text-align: center; color: #484f58; font-size: 0.75rem; margin-top: 24px; }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .toc a { background: #21262d; color: #58a6ff; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; }
+  .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .status-item { background: #21262d; border-radius: 8px; padding: 12px; }
+  .status-item .label { font-size: 0.75rem; color: #8b949e; }
+  .status-item .value { font-size: 1rem; font-weight: 700; margin-top: 4px; }
+  .section-title { font-size: 0.75rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.05em; margin: 16px 0 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>HVOS × CausaMem 集成报告 v2</h1>
+<p class="subtitle">2026-06-13 · Stage 1.5+ · Hermes+Codex 配置 · 第二轮修复</p>
+
+<div class="toc">
+  <a href="#p0">🔴 P0修复</a>
+  <a href="#p1">🟠 P1分析</a>
+  <a href="#v7">🟣 V7分析</a>
+  <a href="#remaining">📋 剩余工作</a>
+</div>
+
+<!-- P0 修复 -->
+<div class="card" id="p0">
+  <h2>🔴 P0 修复完成（4项）</h2>
+
+  <div class="fix-item">
+    <span class="fix-icon">✅</span>
+    <div>
+      <div class="fix-title">P0-1: causal_reasoner.py — 废弃 DB 路径</div>
+      <div class="fix-desc">
+        修复：<span class="mono">hvos_v7/event_store.db</span> → <span class="mono">reality/events.db</span><br>
+        影响：因果推理引擎现在读当前 EventBus 事件（20条），不再读陈旧 v7 数据（9条）
+      </div>
+    </div>
+  </div>
+
+  <div class="fix-item">
+    <span class="fix-icon">✅</span>
+    <div>
+      <div class="fix-title">P0-2: EventBus 猴子补丁 — 从未激活</div>
+      <div class="fix-desc">
+        修复：在 <span class="mono">reality_hub.py:1745</span> 的 <span class="mono">RealityHub.__init__</span> 中调用 <span class="mono">patch_eventbus()</span><br>
+        影响：所有 EventBus.publish() 现在自动写入 CausaMem L0 raw_events 表，持久化不再是内存丢失
+      </div>
+    </div>
+  </div>
+
+  <div class="fix-item">
+    <span class="fix-icon">✅</span>
+    <div>
+      <div class="fix-title">P0-3: knowledge_reasoner.py — 废弃 DB 路径（2处）</div>
+      <div class="fix-desc">
+        修复：<span class="mono">infer_causal_chain()</span> 默认路径 + CLI 命令行默认值<br>
+        文件：<span class="mono">knowledge-graph/knowledge_reasoner.py:255, :371</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="fix-item">
+    <span class="fix-icon">✅</span>
+    <div>
+      <div class="fix-title">P0-4: kg_event_consumer.py + self_training.py — 废弃路径（4处）</div>
+      <div class="fix-desc">
+        修复：<span class="mono">kg_event_consumer.py:347, :754, :760</span> + <span class="mono">self_training.py:34</span><br>
+        影响：KG 重建/回填命令现在从 <span class="mono">reality/events.db</span> 读取，不再需要手动传参
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- P1 分析 -->
+<div class="card" id="p1">
+  <h2>🟠 P1 深度分析结论</h2>
+
+  <div class="section-title">Capital Book — ✅ 实际完整</div>
+  <div class="fix-item">
+    <span class="fix-icon">✅</span>
+    <div>
+      <div class="fix-desc">
+        PoolType 枚举已有 4 池：<span class="mono">CORE / GROWTH / EXPLORATION / RESERVE</span><br>
+        Reserve 应急逻辑已实现：<span class="mono">reserve_min = total × 0.05</span>（line 800），低于 5% 触发 <span class="warn">⚠️ 储备金低于 5%</span> 警报<br>
+        文档说"3池"是措辞过时，代码已正确实现 4 池
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">CausaMem Cognitive Anchor — ⚠️ 暂缓</div>
+  <div class="fix-item">
+    <span class="fix-icon">⚡</span>
+    <div>
+      <div class="fix-desc">
+        <span class="mono">CognitiveAnchorBuilder</span> 已就绪（<span class="mono">hvosc_bridge.py</span>），但 HVOS 核心模块（hvos_evolution_engine / hvos_kg_engine / knowledge_reasoner）均无外部 LLM API 调用——系统是纯规则引擎，无注入点。<br>
+        <span class="warn">结论：</span>等 HVOS 引入真实 LLM 推理调用后，再做 anchor 注入才有意义
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">HVOS LLM 集成现状</div>
+  <div class="fix-item">
+    <span class="fix-icon">📊</span>
+    <div>
+      <div class="fix-desc">
+        检查范围：全部 root 目录 <span class="mono">*.py</span> + <span class="mono">knowledge-graph/*.py</span>（排除 test_/hvos_v7/hvos_v8）<br>
+        结果：<span class="danger">0 个外部 LLM API 调用</span>（无 openai / anthropic / chat/completion）<br>
+        HVOS 当前是规则引擎 + SQL 计算，尚未接入真实 LLM 进行推理
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- V7 分析 -->
+<div class="card" id="v7">
+  <h2>🟣 V7 Capital Allocator 分析（Codex 生成）</h2>
+  <div class="fix-item">
+    <span class="fix-icon">📦</span>
+    <div>
+      <div class="fix-desc">
+        分析报告：<span class="mono">hvos/MERGE_ANALYSIS_v7.md</span><br><br>
+        <strong>核心发现：两者不是替代关系，是 Pipeline 上下游</strong><br>
+        <span class="mono">V7 capital_allocator</span> = 投资前决策引擎（GO Score / Monte Carlo / Board 投票）<br>
+        <span class="mono">Root capital_book</span> = 投资后账本（资金流水 / ROI 闭环 / 真实订单追踪）<br><br>
+        V7 独有 8 个函数（<span class="mono">analyze / allocate / _calculate_gos / _assess_risk / _build_invest_rationale</span> 等）是<strong>决策算法</strong>，应作为独立 Pipeline 阶段保留，不应合并进账本。<br><br>
+        <strong>建议：</strong>保持 V7 capital_allocator 独立，改为在合适位置调用（analyze → allocate → 写入 capital_book 记录）
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 剩余工作 -->
+<div class="card" id="remaining">
+  <h2>📋 剩余工作</h2>
+  <table>
+    <tr><th>优先级</th><th>任务</th><th>说明</th><th>阻塞</th></tr>
+    <tr>
+      <td><span class="badge badge-yellow">P2</span></td>
+      <td>CausaMem Schema 初始化</td>
+      <td class="mono">gbrain-data/brain.db</span> 完整 schema（raw_events → pages → causal_beliefs）</td>
+      <td>gbrain CLI</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-yellow">P2</span></td>
+      <td>HVOS LLM 推理接入</td>
+      <td>将 hvos_kg_engine 或 hvos_evolution_engine 的关键推理路径接入真实 LLM</td>
+      <td>模型配置</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-yellow">P2</span></td>
+      <td>Cognitive Anchor 注入</td>
+      <td>在 LLM 推理前注入 <span class="mono">CognitiveAnchorBuilder.format_anchor_for_llm()</span></td>
+      <td>LLM接入</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-purple">P3</span></td>
+      <td>V7 capital_allocator Pipeline 串联</td>
+      <td>在 capital_book 账本化后，串联 V7 analyze() 做预投资决策</td>
+      <td>设计决策</td>
+    </tr>
+  </table>
+</div>
+
+<!-- 验证 -->
+<div class="card">
+  <h2>✅ 本轮修复验证</h2>
+  <table>
+    <tr><th>文件</th><th>修复内容</th><th>状态</th></tr>
+    <tr>
+      <td class="mono">knowledge-graph/causal_reasoner.py</td>
+      <td>ES_DB 路径修复</td>
+      <td><span class="badge badge-green">PASS</span></td>
+    </tr>
+    <tr>
+      <td class="mono">reality/reality_hub.py</td>
+      <td>EventBus.patch() 激活</td>
+      <td><span class="badge badge-green">PASS</span></td>
+    </tr>
+    <tr>
+      <td class="mono">knowledge-graph/knowledge_reasoner.py</td>
+      <td>ES_DB 路径修复（2处）</td>
+      <td><span class="badge badge-green">PASS</span></td>
+    </tr>
+    <tr>
+      <td class="mono">knowledge-graph/kg_event_consumer.py</td>
+      <td>ES_DB 路径修复（3处）</td>
+      <td><span class="badge badge-green">PASS</span></td>
+    </tr>
+    <tr>
+      <td class="mono">self_training.py</td>
+      <td>ES_DB 路径修复</td>
+      <td><span class="badge badge-green">PASS</span></td>
+    </tr>
+    <tr>
+      <td class="mono">capital_book.py</td>
+      <td>Reserve 逻辑确认完整</td>
+      <td><span class="badge badge-green">PASS</span></td>
+    </tr>
+    <tr>
+      <td class="mono">所有修改文件</td>
+      <td>py_compile 语法验证</td>
+      <td><span class="badge badge-green">PASS</span></td>
+    </tr>
+  </table>
+</div>
+
+<div class="footer">
+  HVOS X × CausaMem Integration v2 · Hermes+Codex · 2026-06-13<br>
+  Generated by Hermes Agent · HVOS AI DTC Venture Studio
+</div>
+
+</div>
+</body>
+</html>

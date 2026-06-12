@@ -1,0 +1,79 @@
+[
+  {
+    "opportunity_id": "opp_2",
+    "opportunity_name": "Aromatherapy Candle",
+    "alpha_score": 67,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-11T11:47:16.487662"
+  },
+  {
+    "opportunity_id": "opp_candle_demo",
+    "opportunity_name": "Aromatherapy Candle",
+    "alpha_score": 67.0,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-11T12:14:30.625025"
+  },
+  {
+    "opportunity_id": "opp_pet_demo",
+    "opportunity_name": "Interactive Pet Toy",
+    "alpha_score": 62.0,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-11T12:14:30.704921"
+  },
+  {
+    "opportunity_id": "demo_2",
+    "opportunity_name": "Aromatherapy Candle",
+    "alpha_score": 67.0,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-11T13:37:06.231925"
+  },
+  {
+    "opportunity_id": "demo_3",
+    "opportunity_name": "Interactive Pet Toy",
+    "alpha_score": 62.0,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-11T13:37:06.302214"
+  },
+  {
+    "opportunity_id": "opp_beauty_device_202606111527",
+    "opportunity_name": "Beauty Device",
+    "alpha_score": 36.1,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-11T15:27:39.794691"
+  },
+  {
+    "opportunity_id": "opp_laptop_stand_202606111527",
+    "opportunity_name": "Laptop Stand",
+    "alpha_score": 35.3,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-11T15:27:39.873237"
+  },
+  {
+    "opportunity_id": "opp_show_hn_homebrew_6_0_0_202606120602",
+    "opportunity_name": "Show Hn: Homebrew 6.0.0",
+    "alpha_score": 37.1,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-12T06:02:08.440327"
+  },
+  {
+    "opportunity_id": "opp_show_hn_extend_ui_open_source__202606120602",
+    "opportunity_name": "Show Hn: Extend Ui – Open-Source Ui Kit ",
+    "alpha_score": 37.1,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-12T06:02:08.537939"
+  },
+  {
+    "opportunity_id": "opp_petition_to_withdraw_canada_s__202606120602",
+    "opportunity_name": "Petition To Withdraw Canada'S Bill C-22",
+    "alpha_score": 37.1,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-12T06:02:08.615218"
+  },
+  {
+    "opportunity_id": "opp_show_hn_gravity_interactive_so_202606120602",
+    "opportunity_name": "Show Hn: Gravity – Interactive Solar-Sys",
+    "alpha_score": 37.1,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-12T06:02:08.694486"
+  }
+]
