@@ -242,7 +242,7 @@ def collect_cart_demand(output_path: Path = DEFAULT_OUTPUT) -> dict[str, object]
         "cart_event_count": len(events),
         "unique_product_count": len(products),
         "total_cart_value": round(sum(product.total_value for product in products), 2),
-        "events": [asdict(event) for event in events],
+        "cart_event_fields": ["product_id", "quantity", "line_subtotal"],
         "products": [asdict(product) for product in products],
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)

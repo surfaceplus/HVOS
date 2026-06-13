@@ -1,0 +1,188 @@
+{
+  "collected_at": "2026-06-13T15:33:55.985312+00:00",
+  "source": "sql_hiugift_com.wp_0dd69b_woocommerce_sessions",
+  "window_days": 7,
+  "session_count": 67,
+  "cart_session_count": 55,
+  "browse_only_session_count": 12,
+  "cart_event_count": 55,
+  "unique_product_count": 17,
+  "total_cart_value": 1247.0,
+  "cart_event_fields": [
+    "product_id",
+    "quantity",
+    "line_subtotal"
+  ],
+  "products": [
+    {
+      "product_id": "7168",
+      "product_name": "Hiugift Ice Cubes Chilling Stones Set - Bar Accessories Gift",
+      "cart_add_count": 7,
+      "total_qty": 7,
+      "total_value": 98.0,
+      "session_count": 7,
+      "avg_line_value": 14.0,
+      "demand_intensity_score": 114.8
+    },
+    {
+      "product_id": "7944",
+      "product_name": "Hiugift Premium Waterproof Throw Blanket - Soft Home Gift",
+      "cart_add_count": 5,
+      "total_qty": 5,
+      "total_value": 140.0,
+      "session_count": 5,
+      "avg_line_value": 28.0,
+      "demand_intensity_score": 89.0
+    },
+    {
+      "product_id": "7121",
+      "product_name": "Hiugift 8.8 inch Stainless Steel Steak Knives - Premium Cutlery Gift",
+      "cart_add_count": 5,
+      "total_qty": 5,
+      "total_value": 90.0,
+      "session_count": 5,
+      "avg_line_value": 18.0,
+      "demand_intensity_score": 84.0
+    },
+    {
+      "product_id": "7943",
+      "product_name": "",
+      "cart_add_count": 5,
+      "total_qty": 6,
+      "total_value": 84.0,
+      "session_count": 5,
+      "avg_line_value": 16.8,
+      "demand_intensity_score": 85.4
+    },
+    {
+      "product_id": "7090",
+      "product_name": "Hiugift Bluetooth Sleep Headband - Music & Sleep Gift",
+      "cart_add_count": 4,
+      "total_qty": 4,
+      "total_value": 152.0,
+      "session_count": 4,
+      "avg_line_value": 38.0,
+      "demand_intensity_score": 75.2
+    },
+    {
+      "product_id": "6253",
+      "product_name": "Hiugift 3-in-1 Magnetic Wireless Charger - Fast Charge Gift Box",
+      "cart_add_count": 4,
+      "total_qty": 4,
+      "total_value": 128.0,
+      "session_count": 4,
+      "avg_line_value": 32.0,
+      "demand_intensity_score": 72.8
+    },
+    {
+      "product_id": "7977",
+      "product_name": "Hiugift Personalized Wooden Piggy Bank - Creative Savings Gift",
+      "cart_add_count": 4,
+      "total_qty": 4,
+      "total_value": 80.0,
+      "session_count": 4,
+      "avg_line_value": 20.0,
+      "demand_intensity_score": 68.0
+    },
+    {
+      "product_id": "6251",
+      "product_name": "Hiugift 3-In-1 Foldable Wireless Charging Station - Premium Tech Gift",
+      "cart_add_count": 3,
+      "total_qty": 3,
+      "total_value": 108.0,
+      "session_count": 3,
+      "avg_line_value": 36.0,
+      "demand_intensity_score": 55.8
+    },
+    {
+      "product_id": "7472",
+      "product_name": "Hiugift Mini Ultrasonic Glasses Cleaning Machine - Tech Gift",
+      "cart_add_count": 3,
+      "total_qty": 3,
+      "total_value": 60.0,
+      "session_count": 3,
+      "avg_line_value": 20.0,
+      "demand_intensity_score": 51.0
+    },
+    {
+      "product_id": "7842",
+      "product_name": "Hiugift Japanese BBQ Tongs Set - Premium Grill Gift",
+      "cart_add_count": 3,
+      "total_qty": 3,
+      "total_value": 33.0,
+      "session_count": 3,
+      "avg_line_value": 11.0,
+      "demand_intensity_score": 48.3
+    },
+    {
+      "product_id": "6390",
+      "product_name": "Hiugift Touch Dimming LED Table Lamp - Home Decor Gift",
+      "cart_add_count": 2,
+      "total_qty": 2,
+      "total_value": 56.0,
+      "session_count": 2,
+      "avg_line_value": 28.0,
+      "demand_intensity_score": 35.6
+    },
+    {
+      "product_id": "7812",
+      "product_name": "Hiugift Smart Thermos Bottle - Premium Drinkware Gift",
+      "cart_add_count": 2,
+      "total_qty": 2,
+      "total_value": 52.0,
+      "session_count": 2,
+      "avg_line_value": 26.0,
+      "demand_intensity_score": 35.2
+    },
+    {
+      "product_id": "7604",
+      "product_name": "Hiugift Smart Pet Laser Toy - Interactive Pet Gift",
+      "cart_add_count": 2,
+      "total_qty": 2,
+      "total_value": 46.0,
+      "session_count": 2,
+      "avg_line_value": 23.0,
+      "demand_intensity_score": 34.6
+    },
+    {
+      "product_id": "7879",
+      "product_name": "Hiugift Strong Focusing LED Flashlight - Outdoor Adventure Gift",
+      "cart_add_count": 2,
+      "total_qty": 2,
+      "total_value": 44.0,
+      "session_count": 2,
+      "avg_line_value": 22.0,
+      "demand_intensity_score": 34.4
+    },
+    {
+      "product_id": "7851",
+      "product_name": "Hiugift Stainless Steel Burger Press - Kitchen Gadget Gift",
+      "cart_add_count": 2,
+      "total_qty": 2,
+      "total_value": 22.0,
+      "session_count": 2,
+      "avg_line_value": 11.0,
+      "demand_intensity_score": 32.2
+    },
+    {
+      "product_id": "7882",
+      "product_name": "Hiugift Touch Dimming Rechargeable Lamp - Ambient Home Gift",
+      "cart_add_count": 1,
+      "total_qty": 1,
+      "total_value": 30.0,
+      "session_count": 1,
+      "avg_line_value": 30.0,
+      "demand_intensity_score": 18.0
+    },
+    {
+      "product_id": "7902",
+      "product_name": "Hiugift Ultrasonic Cleaning Machine - Premium Tech Gift",
+      "cart_add_count": 1,
+      "total_qty": 1,
+      "total_value": 24.0,
+      "session_count": 1,
+      "avg_line_value": 24.0,
+      "demand_intensity_score": 17.4
+    }
+  ]
+}
