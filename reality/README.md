@@ -153,7 +153,7 @@ hermes cron create \
   --name "HVOS Reality Layer Daily" \
   --prompt "执行 HVOS Reality Layer 完整循环：python -m reality.reality_hub --config reality_config.json --action collect && python -m reality.portfolio_manager --config reality_config.json --action report" \
   --schedule "0 6 * * *" \
-  --deliver "weixin:o9cq8057jvG0MFsza8CSJx8EBOos@im.wechat" \
+  --deliver "weixin:YOUR_WECHAT_ID@im.wechat" \
   --repeat forever \
   --workdir "C:/Users/Administrator/AppData/Local/hermes/hvos"
 ```

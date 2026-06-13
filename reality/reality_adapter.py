@@ -238,7 +238,7 @@ class WooAdapter(BaseRealityAdapter):
 
     配置参数：
         store_url: WooCommerce REST API 基础 URL
-                   例如：https://hiugift.com/wp-json/wc/v3
+                   例如：https://your-store.com/wp-json/wc/v3
         consumer_key: WooCommerce REST API Consumer Key
         consumer_secret: WooCommerce REST API Consumer Secret
         table_prefix: WP 数据库表前缀，默认 wp_0dd69b_
@@ -262,10 +262,10 @@ class WooAdapter(BaseRealityAdapter):
 
         # 数据库直连配置（可选，用于绕过 REST API Bug）
         self.db_config = {
-            "host": config.get("host", "89.117.22.200"),
+            "host": config.get("host", "YOUR_VPS_IP"),
             "port": config.get("port", 3306),
-            "database": config.get("database", "sql_hiugift_com"),
-            "user": config.get("user", "sql_hiugift_com"),
+            "database": config.get("database", "YOUR_MYSQL_DATABASE"),
+            "user": config.get("user", "YOUR_MYSQL_DATABASE"),
             "password": config.get("password", ""),
         }
 

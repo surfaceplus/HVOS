@@ -1,36 +1,38 @@
 """
 HVOS WooCommerce → Capital Book 集成
 ===================================
-从 hiugift.com WooCommerce 数据库拉取真实订单，
-自动录入 Capital Book，形成真实资金闭环。
+从 WooCommerce 数据库拉取真实订单，自动录入 Capital Book，形成真实资金闭环。
 
 使用方式（每日 Cron）：
   python woo_to_capital.py --sync
 
 验收指标：
   python woo_to_capital.py --status
+
+配置：通过环境变量（见 .env.example）
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import os
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# WooCommerce DB 配置（从 VPS 直接读取）
+# WooCommerce DB 配置（从环境变量读取）
 # ─────────────────────────────────────────────────────────────────────────────
 
-VPS_IP = "89.117.22.200"
-VPS_SSH_USER = "root"
-VPS_SSH_PASS = "QQ33945551"
-MYSQL_USER = "sql_hiugift_com"
-MYSQL_PASS = "d441c6b635d2e8"
-MYSQL_DB = "sql_hiugift_com"
-TABLE_PREFIX = "wp_0dd69b_"  # WooCommerce 表前缀
+VPS_IP = os.getenv("HVOS_VPS_IP", "YOUR_VPS_IP")
+VPS_SSH_USER = os.getenv("HVOS_VPS_SSH_USER", "root")
+VPS_SSH_PASS = os.getenv("HVOS_VPS_SSH_PASS", "YOUR_SSH_PASSWORD")
+MYSQL_USER = os.getenv("HVOS_MYSQL_USER", "YOUR_MYSQL_USER")
+MYSQL_PASS = os.getenv("HVOS_MYSQL_PASS", "YOUR_MYSQL_PASSWORD")
+MYSQL_DB = os.getenv("HVOS_MYSQL_DB", "YOUR_MYSQL_DATABASE")
+TABLE_PREFIX = os.getenv("HVOS_WC_TABLE_PREFIX", "wp_")  # WooCommerce 表前缀
 
 
 # ─────────────────────────────────────────────────────────────────────────────

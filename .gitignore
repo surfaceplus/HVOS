@@ -20,3 +20,21 @@ test_*.py
 # OS
 .DS_Store
 Thumbs.db
+# Environment (contains real credentials — NEVER commit)
+.env
+.env.local
+
+# Archives
+HVOS_V9_ARCHIVE/
+HVOS_V9_BACKUP/
+HVOS_V9_BACKUP_20260611_1131/
+HVOS_V9_ARCHIVE.zip
+HVOS_V9_BACKUP_20260611_1131.zip
+
+# Local DB / events
+reality/events.db
+*.db
+
+# IDE
+.vscode/
+.idea/

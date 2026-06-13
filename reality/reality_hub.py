@@ -1031,12 +1031,12 @@ class WCOrdersCollector(BaseCollector):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# WooCommerce REST API 收集器（hiugift.com 专用）
+# WooCommerce REST API 收集器（your-store.com 专用）
 # ─────────────────────────────────────────────────────────────────────────────
 
 class WooCommerceCollector(BaseCollector):
     """
-    WooCommerce REST API 收集器（hiugift.com 专用）
+    WooCommerce REST API 收集器（your-store.com 专用）
     读取：订单数 / 营收 / AOV / 退款率
     Auth: Consumer Key + Consumer Secret（URL参数）
     """
@@ -1618,7 +1618,7 @@ class GoogleTrendsCollector(BaseCollector):
         if keywords_raw:
             keywords = [k.strip() for k in keywords_raw.split(",") if k.strip()]
         else:
-            # hiugift.com 默认关键词（礼品相关）
+            # your-store.com 默认关键词（礼品相关）
             keywords = [
                 "gift box", "custom gift", "Father's Day gift",
                 "gift for her", "gift for him", "gift set",
@@ -1924,7 +1924,7 @@ class RealityHub:
             },
             "woo": {
                 "enabled": False,
-                "store_url": "https://hiugift.com",
+                "store_url": "https://your-store.com",
                 "api_key": "YOUR_WOO_CONSUMER_KEY",
                 "api_secret": "YOUR_WOO_CONSUMER_SECRET",
                 "anomaly_threshold_pct": 20.0,
