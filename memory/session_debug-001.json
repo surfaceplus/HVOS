@@ -1,0 +1,12 @@
+{
+  "session_id": "debug-001",
+  "messages": [],
+  "created_at": "2026-06-16T07:12:56.143955",
+  "updated_at": "2026-06-16T07:12:56.143955",
+  "metadata": {
+    "model": "HVOS"
+  },
+  "memory": {
+    "last_workflow_pipeline_result": {}
+  }
+}

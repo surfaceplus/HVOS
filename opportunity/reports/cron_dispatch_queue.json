@@ -75,5 +75,68 @@
     "alpha_score": 37.1,
     "recommendation": "BUY",
     "queued_at": "2026-06-12T06:02:08.694486"
+  },
+  {
+    "opportunity_id": "opp_hetzner_price_adjustment_202606160620",
+    "opportunity_name": "Hetzner Price Adjustment",
+    "alpha_score": 36.2,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-16T06:20:55.254936"
+  },
+  {
+    "opportunity_id": "opp_kitchen_gadget_202606160706",
+    "opportunity_name": "Kitchen Gadget",
+    "alpha_score": 48.8,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-16T07:06:58.069865"
+  },
+  {
+    "opportunity_id": "opp_kitchen_gadget_202606170603",
+    "opportunity_name": "Kitchen Gadget",
+    "alpha_score": 51.8,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-17T06:03:30.011426"
+  },
+  {
+    "opportunity_id": "opp_identity_verification_on_claud_202606220601",
+    "opportunity_name": "Identity Verification On Claude",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-22T06:01:20.210800"
+  },
+  {
+    "opportunity_id": "opp_prefer_duplication_over_the_wr_202606220601",
+    "opportunity_name": "Prefer Duplication Over The Wrong Abstra",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-22T06:01:20.290123"
+  },
+  {
+    "opportunity_id": "opp_15_minute_at_home_lyme_disease_202606220601",
+    "opportunity_name": "15-Minute At-Home Lyme Disease Tick Test",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-22T06:01:20.364887"
+  },
+  {
+    "opportunity_id": "opp_show_hn_startupwiki_a_free_alt_202606220601",
+    "opportunity_name": "Show Hn: Startupwiki – A Free Alternativ",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-22T06:01:20.459376"
+  },
+  {
+    "opportunity_id": "opp_steam_machine_launches_today_202606231825",
+    "opportunity_name": "Steam Machine Launches Today",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-23T18:25:39.906310"
+  },
+  {
+    "opportunity_id": "opp_show_hn_startupwiki_a_free_alt_202606231825",
+    "opportunity_name": "Show Hn: Startupwiki – A Free Alternativ",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-23T18:25:39.990436"
   }
 ]

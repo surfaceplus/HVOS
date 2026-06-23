@@ -50,7 +50,7 @@ def hvos_status():
 ║      HVOS — HERMES VENTURE OPERATING SYSTEM                 ║
 ║           AI DTC Venture Studio — 全系统状态面板            ║
 ║                                                              ║
-║                    Version 1.0 — Phase 1-2                  ║
+║                    Version 9.0 — Phase 1-7                  ║
 ║                    系统时间: %s                     ║
 ╚══════════════════════════════════════════════════════════════╝
 """ % datetime.now().strftime("%Y-%m-%d %H:%M"))
@@ -81,11 +81,11 @@ def hvos_status():
     # ============================================================
     section("Memory Layer — 知识图谱 (Knowledge Graph)")
 
-    cur.execute("SELECT type, COUNT(*) FROM nodes GROUP BY type")
+    cur.execute("SELECT entity_type, COUNT(*) FROM kg_nodes GROUP BY entity_type")
     node_types = dict(cur.fetchall())
     total_nodes = sum(node_types.values())
 
-    cur.execute("SELECT rel_type, COUNT(*) FROM relations GROUP BY rel_type")
+    cur.execute("SELECT rel_type, COUNT(*) FROM kg_relations GROUP BY rel_type")
     rel_types = dict(cur.fetchall())
     total_rels = sum(rel_types.values())
 
@@ -162,7 +162,7 @@ def hvos_status():
     # ============================================================
     section("Product DNA — 产品基因库")
 
-    cur.execute("SELECT id, properties FROM nodes WHERE type='Product'")
+    cur.execute("SELECT id, properties FROM kg_nodes WHERE entity_type='Product'")
     products_with_dna = 0
     for row in cur.fetchall():
         props = json.loads(row[1]) if row[1] else {}

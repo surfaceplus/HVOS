@@ -1,0 +1,29 @@
+"""hiuprices margins"""
+import json
+
+# WooCommerce product prices
+PRODUCTS = {
+    "智能猫砂盆": {"price": 25.99, "cost": None},
+    "3合1无线充电站": {"price": 36.0, "cost": None},
+    "磁吸充电板": {"price": 32.0, "cost": None},
+    "LED台灯": {"price": 28.0, "cost": None},
+    "蓝牙睡眠耳机": {"price": 38.0, "cost": None}
+}
+
+# Dropshipping COGS ratios (costeg_cost per category)
+COST_RATIOS = {
+    "智能猫砂盆": 0.33,
+    "3合1无线充电站": 0.30,
+    "磁吸充电板": 0.33,
+    "LED台灯": 0.33,
+    "蓝牙睡眠耳机": 0.33,
+}
+
+print("产品 | 售价 | 成本 | 净利润率")
+print("---" * 20)
+for name, data in PRODUCTS.items():
+    p = data["price"]
+    r = COST_RATIOS.get(name, 0.33)
+    c = p * r
+    net = p - c
+    print(f"{name[:20]} | ${p:.2f} | ${c:.2f} | 成本率{r:.0%} | 净利${net:.2f}")

@@ -384,6 +384,87 @@ class AlphaScorer:
         return "无季节性窗口", 999, 45
 
 
+def score_with_real_data(keyword: str, category_id: str = None) -> dict:
+    """Run Alpha Scorer with real APIClaw + 1688 data"""
+    from reality.amazon_collector import search_categories
+    from reality.collector_1688 import search_products
+
+    # 1. Amazon market capacity — velocity_signal (single dict)
+    cats = search_categories(keyword)
+    velocity_signal = None
+    breadth_signals = []
+    amazon_cat = None
+    product_count = 0
+
+    if cats:
+        best_cat = max(cats, key=lambda c: c.product_count)
+        product_count = best_cat.product_count
+        amazon_cat = best_cat.category_name
+        # velocity_weekly derived from product_count (higher count = trending category)
+        velocity_weekly = min(product_count / 50000.0 * 0.5, 1.0)
+        velocity_signal = {
+            "source": "amazon_market",
+            "velocity_weekly": velocity_weekly,
+            "raw_value": float(product_count),
+            "peak_value": float(product_count),
+        }
+        # Also add as breadth signal
+        breadth_signals.append({
+            "source": "amazon_market",
+            "normalized_score": min(product_count / 50000.0, 1.0),
+            "volume": float(product_count),
+        })
+
+    # 2. 1688 supply — breadth signal + depth
+    avg_price = 0.0
+    depth_supplier_count = 0
+    supply_results = {"total_results": 0, "offers": 0, "avg_price_cny": 0.0}
+
+    supply = search_products(keyword, max_results=5)
+    if supply and supply.offers:
+        prices = []
+        for o in supply.offers:
+            p = o.get("price", {})
+            if isinstance(p, dict) and p.get("min"):
+                prices.append(float(p["min"]))
+        avg_price = sum(prices) / len(prices) if prices else 0.0
+        depth_supplier_count = len(supply.offers)
+        breadth_signals.append({
+            "source": "1688_supply",
+            "normalized_score": min(depth_supplier_count / 20.0, 1.0),
+            "volume": float(depth_supplier_count),
+        })
+        supply_results = {
+            "total_results": supply.total_results,
+            "offers": depth_supplier_count,
+            "avg_price_cny": avg_price,
+        }
+
+    # 3. Call calculate_alpha_score with named parameters
+    scorer = AlphaScorer()
+    alpha_result = scorer.calculate_alpha_score(
+        velocity_signal=velocity_signal,
+        breadth_signals=breadth_signals if breadth_signals else None,
+        depth_supplier_count=depth_supplier_count,
+        depth_volume=float(depth_supplier_count),
+        competition_top_share=0.35,
+        competition_new_entrants=depth_supplier_count,
+    )
+
+    alpha = getattr(alpha_result, 'alpha_score', None)
+    confidence = getattr(alpha_result, 'confidence', None)
+
+    return {
+        "keyword": keyword,
+        "alpha_score": alpha,
+        "confidence": confidence,
+        "signals": len(breadth_signals) + (1 if velocity_signal else 0),
+        "amazon": {"category": amazon_cat, "product_count": product_count} if amazon_cat else None,
+        "supply": supply_results,
+    }
+
+
+
 def demo():
     """演示 Alpha Score 计算"""
     scorer = AlphaScorer()

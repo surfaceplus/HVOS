@@ -1,0 +1,26 @@
+{
+  "session_id": "6b64bdb4",
+  "messages": [
+    {
+      "role": "user",
+      "content": "ѡƷ",
+      "tool_calls": null,
+      "tool_call_id": null,
+      "timestamp": "2026-06-16T06:19:15.638857"
+    }
+  ],
+  "created_at": "2026-06-16T06:19:15.638857",
+  "updated_at": "2026-06-16T06:20:55.254936",
+  "metadata": {
+    "model": "HVOS"
+  },
+  "memory": {
+    "last_product_selector_result": {
+      "success": true,
+      "tool": "product_selector",
+      "count": 0,
+      "category": "kitchen",
+      "products": []
+    }
+  }
+}

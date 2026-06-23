@@ -535,6 +535,485 @@ class PolicyLearningEngine:
 
 
 # ============================================================
+# V9.2 — Policy Compression Engine
+# ============================================================
+
+class PolicyCompressionEngine:
+    """
+    V9.2 Policy 压缩引擎。
+
+    解决 OpenAI 分析指出的核心问题：
+      - 2,817 条 Policy → 60-80% 冗余
+      - 同义策略 / 时间失效 / 低样本策略
+
+    生命周期：Draft → Active → Weak → Archived → Deleted
+    """
+
+    def __init__(self, db_path: str = None):
+        if db_path is None:
+            db_path = r"C:\Users\Administrator\AppData\Local\hermes\hvos\knowledge-graph\strategy_memory.db"
+        self.db_path = db_path
+
+    def _conn(self):
+        return sqlite3.connect(self.db_path)
+
+    # ----------------------------------------------------------
+    # 1. 相似度检测（Jaccard）
+    # ----------------------------------------------------------
+
+    def _jaccard(self, a: set, b: set) -> float:
+        """Jaccard 相似度"""
+        if not a and not b:
+            return 1.0
+        inter = a & b
+        union = a | b
+        return len(inter) / len(union) if union else 0.0
+
+    def policy_similarity(self, p1: Policy, p2: Policy) -> dict:
+        """
+        计算两个 Policy 的多维度相似度。
+
+        Returns:
+            {"overall": float (0-1), "trigger": float, "rule": float, "type_match": bool}
+        """
+        # Trigger conditions 相似度
+        t1 = set(json.dumps(p1.trigger_conditions, sort_keys=True).split())
+        t2 = set(json.dumps(p2.trigger_conditions, sort_keys=True).split())
+        trigger_sim = self._jaccard(t1, t2)
+
+        # Governance rule 相似度
+        r1 = set(json.dumps(p1.governance_rule, sort_keys=True).split())
+        r2 = set(json.dumps(p2.governance_rule, sort_keys=True).split())
+        rule_sim = self._jaccard(r1, r2)
+
+        # 类型一致性
+        type_match = 1.0 if p1.policy_type == p2.policy_type else 0.0
+
+        # 加权综合
+        overall = 0.30 * trigger_sim + 0.35 * rule_sim + 0.35 * type_match
+
+        return {
+            "overall": round(overall, 4),
+            "trigger_similarity": round(trigger_sim, 4),
+            "rule_similarity": round(rule_sim, 4),
+            "type_match": type_match == 1.0,
+        }
+
+    # ----------------------------------------------------------
+    # 2. Policy 评分（健康度）
+    # ----------------------------------------------------------
+
+    def compute_policy_score(self, policy: Policy) -> dict:
+        """
+        计算 Policy 的综合健康度评分。
+
+        因子：
+          - confidence（0-0.4）：原始置信度
+          - age_factor（0-0.2）：越新越高（30天内满分，逐年衰减）
+          - support_factor（0-0.2）：策略来源数量
+          - specificity（0-0.2）：触发条件越具体越高
+
+        Returns:
+            {"score": float (0-1), "factors": {...}}
+        """
+        # ── confidence 因子（0-0.4）──
+        conf_score = policy.confidence * 0.4
+
+        # ── age 因子（0-0.2）──
+        age_score = 0.15  # 默认
+        if policy.approved_at:
+            try:
+                created = datetime.fromisoformat(policy.approved_at)
+                days_old = (datetime.now() - created).days
+                if days_old <= 30:
+                    age_score = 0.2
+                elif days_old <= 180:
+                    age_score = 0.15
+                elif days_old <= 365:
+                    age_score = 0.10
+                else:
+                    age_score = 0.05  # 超过1年，严重衰减
+            except Exception:
+                pass
+
+        # ── support 因子（0-0.2）──
+        n_sources = len(policy.source_strategy_ids)
+        support_score = min(0.2, n_sources * 0.05)
+
+        # ── specificity 因子（0-0.2）──
+        tc = policy.trigger_conditions
+        n_conditions = sum(1 for v in tc.values() if v)
+        specificity = min(0.2, n_conditions * 0.05)
+
+        total = conf_score + age_score + support_score + specificity
+
+        return {
+            "score": round(total, 4),
+            "factors": {
+                "confidence": round(conf_score, 4),
+                "age": round(age_score, 4),
+                "support": round(support_score, 4),
+                "specificity": round(specificity, 4),
+            }
+        }
+
+    # ----------------------------------------------------------
+    # 3. 扫描重复 Policy
+    # ----------------------------------------------------------
+
+    def scan_duplicates(self, threshold: float = 0.70, max_pairs: int = 5000) -> list[dict]:
+        """
+        扫描相似度超过阈值的 Policy 对。
+
+        优化：先按 policy_type 分组，只比较同类型 Policy。
+        max_pairs 限制最大返回对数，避免 O(n²) 爆炸。
+
+        Returns:
+            [{"p1_id": str, "p2_id": str, "similarity": {...}}, ...]
+        """
+        conn = self._conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT policy_id, name, policy_type, description,
+                   trigger_conditions, governance_rule,
+                   confidence, source_strategy_ids, status
+            FROM governance_policies
+            WHERE status IN ('pending', 'active')
+            ORDER BY policy_type, confidence DESC
+        """)
+        rows = cur.fetchall()
+        conn.close()
+
+        # 按 policy_type 分组
+        groups: dict[str, list[Policy]] = {}
+        for row in rows:
+            p = Policy(
+                policy_id=row[0], name=row[1], policy_type=row[2],
+                description=row[3],
+                trigger_conditions=json.loads(row[4]),
+                governance_rule=json.loads(row[5]),
+                confidence=row[6],
+                source_strategy_ids=json.loads(row[7]),
+                status=row[8],
+            )
+            t = p.policy_type
+            if t not in groups:
+                groups[t] = []
+            groups[t].append(p)
+
+        duplicates = []
+        seen = set()
+
+        for ptype, policy_list in groups.items():
+            n = len(policy_list)
+            if n < 2:
+                continue
+            if len(duplicates) >= max_pairs:
+                break
+            for i in range(n):
+                if len(duplicates) >= max_pairs:
+                    break
+                for j in range(i + 1, n):
+                    if len(duplicates) >= max_pairs:
+                        break
+                    key = tuple(sorted([policy_list[i].policy_id, policy_list[j].policy_id]))
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    sim = self.policy_similarity(policy_list[i], policy_list[j])
+                    if sim["overall"] >= threshold:
+                        duplicates.append({
+                            "p1_id": policy_list[i].policy_id,
+                            "p1_name": policy_list[i].name,
+                            "p2_id": policy_list[j].policy_id,
+                            "p2_name": policy_list[j].name,
+                            "similarity": sim,
+                        })
+
+        return sorted(duplicates, key=lambda x: -x["similarity"]["overall"])
+
+    # ----------------------------------------------------------
+    # 4. 合并 Policy
+    # ----------------------------------------------------------
+
+    def merge_policies(
+        self,
+        keep_id: str,
+        merge_ids: list[str],
+        merged_name: str = "",
+        merged_description: str = "",
+    ) -> dict:
+        """
+        合并多个 Policy 到目标 Policy。
+
+        - keep_id 保留，merge_ids 标记为 merged
+        - 合并 source_strategy_ids
+        - 取最高 confidence
+        """
+        conn = self._conn()
+        cur = conn.cursor()
+
+        # 获取 keep 的当前数据
+        cur.execute("""
+            SELECT policy_id, name, confidence, source_strategy_ids
+            FROM governance_policies WHERE policy_id = ?
+        """, (keep_id,))
+        keep_row = cur.fetchone()
+        if not keep_row:
+            conn.close()
+            return {"success": False, "error": f"keep_id {keep_id} not found"}
+
+        keep_name = keep_row[1]
+        keep_conf = keep_row[2]
+        keep_sources = set(json.loads(keep_row[3] or "[]"))
+
+        merged_sources = set(keep_sources)
+        max_conf = keep_conf
+
+        for mid in merge_ids:
+            cur.execute("""
+                SELECT confidence, source_strategy_ids
+                FROM governance_policies WHERE policy_id = ?
+            """, (mid,))
+            row = cur.fetchone()
+            if row:
+                max_conf = max(max_conf, row[0])
+                merged_sources |= set(json.loads(row[1] or "[]"))
+
+            # 标记为 merged
+            now = datetime.now().isoformat()
+            cur.execute("""
+                UPDATE governance_policies
+                SET status = 'archived', notes = ?,
+                    updated_at = ?
+                WHERE policy_id = ?
+            """, (f"Merged into {keep_id} at {now}", now, mid))
+
+        # 更新 keep
+        now = datetime.now().isoformat()
+        new_name = merged_name or keep_name
+        new_desc = merged_description or f"Merged from {len(merge_ids)} policies"
+        cur.execute("""
+            UPDATE governance_policies
+            SET name = ?, description = ?,
+                confidence = ?,
+                source_strategy_ids = ?,
+                notes = ?, updated_at = ?
+            WHERE policy_id = ?
+        """, (
+            new_name, new_desc,
+            max_conf,
+            json.dumps(sorted(list(merged_sources))),
+            f"Merged {len(merge_ids)} policies at {now}",
+            now,
+            keep_id,
+        ))
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "success": True,
+            "keep_id": keep_id,
+            "merged_count": len(merge_ids),
+            "merge_ids": merge_ids,
+            "source_count_before": len(keep_sources),
+            "source_count_after": len(merged_sources),
+            "confidence": max_conf,
+        }
+
+    # ----------------------------------------------------------
+    # 5. 自动归档低效 Policy
+    # ----------------------------------------------------------
+
+    def archive_decayed(self, min_score: float = 0.30, dry_run: bool = False) -> dict:
+        """
+        归档评分低于阈值的 Policy。
+
+        Policy 生命周期：
+          Draft → Active → Weak (score<min) → Archived (90天无人干预) → Deleted
+
+        Returns:
+            {"archived": int, "deleted": int, "details": [...]}
+        """
+        conn = self._conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT policy_id, name, status, confidence, approved_at
+            FROM governance_policies
+            WHERE status IN ('pending', 'active', 'weak')
+            ORDER BY confidence ASC
+        """)
+        rows = cur.fetchall()
+        conn.close()
+
+        archived = 0
+        deleted = 0
+        kept = 0
+        details = []
+
+        for row in rows:
+            pid, name, status, confidence, approved_at = row
+            policy = self.get_policy(pid)
+            if not policy:
+                continue
+
+            score_info = self.compute_policy_score(policy)
+            score = score_info["score"]
+
+            if score >= min_score:
+                kept += 1
+                continue
+
+            # 需要处理
+            now = datetime.now().isoformat()
+            days_since_approval = 9999
+            if approved_at:
+                try:
+                    days_since_approval = (datetime.now() - datetime.fromisoformat(approved_at)).days
+                except Exception:
+                    pass
+
+            if status == "weak" and days_since_approval > 90:
+                # weak 超过90天 → 删除
+                if not dry_run:
+                    conn2 = self._conn()
+                    cur2 = conn2.cursor()
+                    cur2.execute("DELETE FROM governance_policies WHERE policy_id = ?", (pid,))
+                    conn2.commit()
+                    conn2.close()
+                deleted += 1
+                details.append({
+                    "policy_id": pid,
+                    "name": name,
+                    "action": "deleted",
+                    "score": score,
+                    "reason": f"Weak for {days_since_approval}d > 90d threshold",
+                })
+            else:
+                # 标记为 weak
+                if not dry_run:
+                    conn2 = self._conn()
+                    cur2 = conn2.cursor()
+                    cur2.execute("""
+                        UPDATE governance_policies
+                        SET status = 'weak', notes = ?,
+                            updated_at = ?
+                        WHERE policy_id = ?
+                    """, (f"Auto-archived: score={score:.2f} < {min_score}", now, pid))
+                    conn2.commit()
+                    conn2.close()
+                archived += 1
+                details.append({
+                    "policy_id": pid,
+                    "name": name,
+                    "action": "archived",
+                    "score": score,
+                    "reason": f"Score {score:.2f} < threshold {min_score}",
+                })
+
+        return {
+            "archived": archived,
+            "deleted": deleted,
+            "kept": kept,
+            "total_scanned": len(rows),
+            "dry_run": dry_run,
+            "details": details[:50],
+        }
+
+    # ----------------------------------------------------------
+    # 6. 完整压缩流程
+    # ----------------------------------------------------------
+
+    def run_compression(self, dry_run: bool = False) -> dict:
+        """
+        执行完整的 Policy 压缩流程。
+
+        步骤：
+          1. 扫描相似 Policy → 建议合并
+          2. 计算健康度评分
+          3. 归档低效 Policy
+          4. 报告统计
+
+        Returns:
+            {"duplicates_found": int, "archived": int, ...}
+        """
+        report = {"started_at": datetime.now().isoformat()}
+
+        # Step 1: 扫描重复（限制5000对，取最高相似度）
+        duplicates = self.scan_duplicates(threshold=0.70, max_pairs=5000)
+        report["duplicates_found"] = len(duplicates)
+        report["duplicate_pairs"] = duplicates[:20]
+
+        # Step 2: 自动合并高度相似（>0.90，仅处理前100对避免耗时过长）
+        auto_merged = 0
+        merged_ids_taken = set()
+        merge_count = 0
+        for dup in duplicates:
+            if dup["similarity"]["overall"] >= 0.90:
+                p1, p2 = dup["p1_id"], dup["p2_id"]
+                if p1 in merged_ids_taken or p2 in merged_ids_taken:
+                    continue
+                if not dry_run:
+                    result = self.merge_policies(keep_id=p1, merge_ids=[p2])
+                    if result["success"]:
+                        merged_ids_taken.add(p2)
+                        auto_merged += 1
+                        merge_count += 1
+                        if merge_count >= 100:  # 每轮最多合并100对
+                            break
+        report["auto_merged"] = auto_merged
+
+        # Step 3: 归档低效 Policy
+        archive_result = self.archive_decayed(min_score=0.30, dry_run=dry_run)
+        report["archive_result"] = {
+            "archived": archive_result["archived"],
+            "deleted": archive_result["deleted"],
+            "kept": archive_result["kept"],
+        }
+
+        # Step 4: 最终统计
+        conn = self._conn()
+        cur = conn.cursor()
+        for status in ("active", "pending", "weak", "archived", "rejected"):
+            cur.execute("SELECT COUNT(*) FROM governance_policies WHERE status = ?", (status,))
+            report[f"count_{status}"] = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM governance_policies")
+        report["total_policies"] = cur.fetchone()[0]
+        conn.close()
+
+        report["completed_at"] = datetime.now().isoformat()
+        return report
+
+    def get_policy(self, policy_id: str) -> Optional[Policy]:
+        """获取 Policy（复用已有方法）"""
+        conn = self._conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT policy_id, name, policy_type, description,
+                   trigger_conditions, governance_rule,
+                   confidence, source_strategy_ids,
+                   status, approved_by, approved_at, notes
+            FROM governance_policies
+            WHERE policy_id = ?
+        """, (policy_id,))
+        row = cur.fetchone()
+        conn.close()
+        if not row:
+            return None
+        return Policy(
+            policy_id=row[0], name=row[1], policy_type=row[2],
+            description=row[3],
+            trigger_conditions=json.loads(row[4]),
+            governance_rule=json.loads(row[5]),
+            confidence=row[6],
+            source_strategy_ids=json.loads(row[7]),
+            status=row[8], approved_by=row[9], approved_at=row[10],
+            notes=row[11]
+        )
+
+
+# ============================================================
 # CLI
 # ============================================================
 
@@ -552,6 +1031,10 @@ if __name__ == "__main__":
     parser.add_argument("--risk_keywords", help="风险关键词（逗号分隔）")
     parser.add_argument("--scores", help="当前评分JSON")
     parser.add_argument("--db", help="数据库路径")
+
+    # V9.2 压缩参数
+    parser.add_argument("--compress", action="store_true", help="执行 Policy 压缩（同义合并+归档）")
+    parser.add_argument("--dry_run", action="store_true", help="只读模式，不写入数据库")
 
     args = parser.parse_args()
     db = args.db or r"C:\Users\Administrator\AppData\Local\hermes\hvos\knowledge-graph\strategy_memory.db"
@@ -628,4 +1111,32 @@ if __name__ == "__main__":
             print(f"\n  🚫 AUTO-REJECT: {result['auto_reject_reason']}")
         else:
             print(f"\n  ✅ 通过 Policy 检查")
+        print("=" * 60)
+
+    elif args.action == "compress":
+        """V9.2: Policy 压缩 — 同义合并 + 低效归档"""
+        print("=" * 60)
+        print("  Policy Compression Engine — V9.2")
+        print("=" * 60)
+        pce = PolicyCompressionEngine(db)
+        report = pce.run_compression(dry_run=args.dry_run)
+        print(f"\n  📊 压缩报告:")
+        print(f"    扫描前总计: {report.get('total_policies_before', '?')}")
+        print(f"    扫描后总计: {report['total_policies']}")
+        print(f"    重复对:     {report['duplicates_found']}")
+        print(f"    自动合并:   {report['auto_merged']}")
+        ar = report['archive_result']
+        print(f"    归档:       {ar['archived']}")
+        print(f"    删除:       {ar['deleted']}")
+        print(f"    保留:       {ar['kept']}")
+        print(f"\n    各状态统计:")
+        print(f"      active:   {report.get('count_active', 0)}")
+        print(f"      pending:  {report.get('count_pending', 0)}")
+        print(f"      weak:     {report.get('count_weak', 0)}")
+        print(f"      archived: {report.get('count_archived', 0)}")
+        print(f"      rejected: {report.get('count_rejected', 0)}")
+        if args.dry_run:
+            print(f"\n  🟡 DRY RUN — 未写入数据库")
+        elif report['auto_merged'] > 0 or ar['archived'] > 0:
+            print(f"\n  ✅ 压缩完成")
         print("=" * 60)

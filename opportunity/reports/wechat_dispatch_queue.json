@@ -47,5 +47,20 @@
     "alpha_score": 37.1,
     "recommendation": "BUY",
     "queued_at": "2026-06-12T06:04:32.842110"
+  },
+  {
+    "report_path": "C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\opportunity\\reports\\opp_TOP5_20260622_0603.html",
+    "report_type": "TOP5_scan",
+    "scan_id": "scan_202606220600",
+    "total": 9,
+    "alerts": 4,
+    "queued_at": "2026-06-22T06:03:29.457617"
+  },
+  {
+    "report_path": "C:/Users/Administrator/AppData/Local/hermes/hvos/opportunity/reports/opp_TOP5_20260623_1827.html",
+    "opportunity_name": "HVOS TOP5 报告 20260623_1827",
+    "alpha_score": 34.3,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-23T18:27:37.914858"
   }
 ]

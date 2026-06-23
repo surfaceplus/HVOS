@@ -1,0 +1,18 @@
+{
+  "session_id": "final-test-2",
+  "messages": [],
+  "created_at": "2026-06-16T06:54:11.566132",
+  "updated_at": "2026-06-16T06:54:11.568799",
+  "metadata": {
+    "model": "HVOS"
+  },
+  "memory": {
+    "last_product_selector_result": {
+      "success": true,
+      "tool": "product_selector",
+      "count": 0,
+      "category": "kitchen",
+      "products": []
+    }
+  }
+}

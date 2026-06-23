@@ -1062,6 +1062,414 @@ class LearningLoop:
         }
 
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# V9.2 — Error Attribution Engine（预测误差归因引擎）
+# ─────────────────────────────────────────────────────────────────────────────
+
+@dataclass
+class PredictionErrorRecord:
+    """预测误差记录"""
+    prediction_id: str
+    opp_id: str
+    predicted_roi: float
+    actual_roi: float
+    predicted_at: str
+    recorded_at: str = None
+    error_pct: float = None
+    error_magnitude: str = ""  # under/over/correct
+    causal_factors: list = None
+    attribution: dict = None
+
+    def __post_init__(self):
+        if self.recorded_at is None:
+            self.recorded_at = datetime.now(timezone.utc).isoformat()
+        if self.error_pct is None and self.actual_roi > 0:
+            self.error_pct = round((self.actual_roi - self.predicted_roi) / self.predicted_roi * 100, 2) if self.predicted_roi != 0 else 0
+            if abs(self.error_pct) < 15:
+                self.error_magnitude = "correct"
+            elif self.error_pct < 0:
+                self.error_magnitude = "over"  # 预测过高
+            else:
+                self.error_magnitude = "under"  # 预测过低
+        if self.causal_factors is None:
+            self.causal_factors = []
+        if self.attribution is None:
+            self.attribution = {}
+
+
+class ErrorAttributionEngine:
+    """
+    V9.2 预测误差归因引擎。
+
+    解决 OpenAI 分析的核心问题：
+      - "Outcome → Knowledge 反馈链太弱"
+      - "没有 '为什么预测错'，没有 '哪个模块导致预测错'"
+
+    工作流：
+      Outcome → Prediction Error → Root Cause → Policy Update → Agent Update → KG Update
+    """
+
+    def __init__(self, kg_db: str = KG_DB, strategy_db: str = None):
+        self.kg_db = kg_db
+        self.strategy_db = strategy_db or rf"{HVOS_ROOT}\knowledge-graph\strategy_memory.db"
+
+    def _kg(self):
+        return _kg_conn()
+
+    def _strat(self):
+        conn = sqlite3.connect(self.strategy_db, timeout=30)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    # ----------------------------------------------------------
+    # 1. 记录预测误差
+    # ----------------------------------------------------------
+
+    def record_prediction_error(
+        self,
+        prediction_id: str,
+        opp_id: str,
+        predicted_roi: float,
+        actual_roi: float,
+        actual_cvr: float = 0.0,
+        actual_ctr: float = 0.0,
+        actual_aov: float = 0.0,
+        actual_refund_rate: float = 0.0,
+        category: str = "",
+        market: str = "",
+    ) -> PredictionErrorRecord:
+        """
+        记录预测 vs 实际，并自动执行归因。
+
+        Returns:
+            PredictionErrorRecord（已填充 attribution）
+        """
+        # 构建误差记录
+        error_pct = round((actual_roi - predicted_roi) / predicted_roi * 100, 2) if predicted_roi != 0 else 0
+        if abs(error_pct) < 15:
+            magnitude = "correct"
+        elif error_pct < 0:
+            magnitude = "over"
+        else:
+            magnitude = "under"
+
+        record = PredictionErrorRecord(
+            prediction_id=prediction_id,
+            opp_id=opp_id,
+            predicted_roi=predicted_roi,
+            actual_roi=actual_roi,
+            predicted_at=datetime.now(timezone.utc).isoformat(),
+            error_pct=error_pct,
+            error_magnitude=magnitude,
+        )
+
+        # 执行归因
+        attribution = self.attribute_error(
+            record,
+            cvr=actual_cvr,
+            ctr=actual_ctr,
+            aov=actual_aov,
+            refund_rate=actual_refund_rate,
+            category=category,
+            market=market,
+        )
+        record.attribution = attribution
+
+        # 写入 KG 的 prediction_errors 表
+        conn = self._kg()
+        cur = conn.cursor()
+        # 使用 V9.2 新表（兼容旧表结构，不覆盖旧表）
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS prediction_error_attributions (
+                prediction_id TEXT PRIMARY KEY,
+                opp_id TEXT,
+                predicted_roi REAL,
+                actual_roi REAL,
+                error_pct REAL,
+                error_magnitude TEXT,
+                attribution TEXT,
+                recorded_at TEXT
+            )
+        """)
+        cur.execute("""
+            INSERT OR REPLACE INTO prediction_error_attributions
+            (prediction_id, opp_id, predicted_roi, actual_roi,
+             error_pct, error_magnitude, attribution, recorded_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            record.prediction_id, record.opp_id,
+            record.predicted_roi, record.actual_roi,
+            record.error_pct, record.error_magnitude,
+            json.dumps(attribution, ensure_ascii=False),
+            record.recorded_at,
+        ))
+        conn.commit()
+        conn.close()
+
+        logger.info(
+            f"[ErrorAttribution] {opp_id}: "
+            f"pred={predicted_roi:.2f}, actual={actual_roi:.2f}, "
+            f"error={error_pct:+.1f}% → {attribution.get('primary_engine', 'unknown')}"
+        )
+
+        return record
+
+    # ----------------------------------------------------------
+    # 2. 误差归因分析
+    # ----------------------------------------------------------
+
+    def attribute_error(
+        self,
+        record: PredictionErrorRecord,
+        cvr: float = 0.0,
+        ctr: float = 0.0,
+        aov: float = 0.0,
+        refund_rate: float = 0.0,
+        category: str = "",
+        market: str = "",
+    ) -> dict:
+        """
+        归因分析：预测误差来自哪个引擎/模块。
+
+        归因维度：
+          - Outcome Engine（ROI回归/概率映射/MC模拟）
+          - Policy Engine（Policy 评分调整偏差）
+          - Agent（Agent 选择偏差）
+          - Data（数据质量/样本不足）
+          - External（外部冲击未建模）
+
+        Returns:
+            {
+                "primary_engine": str,
+                "confidence": float,
+                "engine_scores": {...},
+                "recommendation": str,
+                "decomposition": {...}
+            }
+        """
+        error = abs(record.error_pct or 0)
+
+        # ── 各引擎嫌疑评分（越高越可能是根因）──
+        # 每个引擎得分 0-1
+        scores = {}
+
+        # 1. Outcome Engine 嫌疑
+        oe_score = 0.0
+        if record.predicted_roi > 3.0:
+            oe_score += 0.3  # 过高预测 → 回归模型偏差
+        if record.predicted_roi < -0.5:
+            oe_score += 0.3  # 过低预测
+        if error > 80:
+            oe_score += 0.3  # 大幅偏离 → 模型校准问题
+        # CVR高但ROI预测错 → 毛利参数错误
+        if cvr > 0.05 and record.error_magnitude == "over":
+            oe_score += 0.2
+        scores["outcome_engine"] = min(1.0, oe_score)
+
+        # 2. Policy Engine 嫌疑
+        pe_score = 0.0
+        if error > 50:
+            pe_score += 0.2  # Policy 评分可能引入偏差
+        if record.error_magnitude == "over":
+            pe_score += 0.1  # Policy 过度乐观
+        if error > 100:
+            pe_score += 0.2  # 严重偏离 → 政策过强
+        scores["policy_engine"] = min(1.0, pe_score)
+
+        # 3. Agent 嫌疑
+        ag_score = 0.0
+        if record.error_magnitude == "under":
+            ag_score += 0.1  # Agent 可能过于保守
+        if error > 60:
+            ag_score += 0.1
+        scores["agent"] = min(1.0, ag_score)
+
+        # 4. 数据质量嫌疑
+        dq_score = 0.0
+        conn = self._kg()
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM prediction_errors")
+        n_errors = cur.fetchone()[0]
+        conn.close()
+        if n_errors < 10:
+            dq_score += 0.3  # 样本太少 → 回归不可靠
+        if category and not market:
+            dq_score += 0.1  # 市场缺失
+        scores["data_quality"] = min(1.0, dq_score)
+
+        # 5. 外部冲击嫌疑
+        ext_score = 0.0
+        if record.error_magnitude == "under" and error > 70:
+            ext_score += 0.3  # 远超预期 → 可能有外部利好
+        if refund_rate > 0.08:
+            ext_score += 0.2  # 高退款率 → 产品问题超出模型
+        scores["external_shock"] = min(1.0, ext_score)
+
+        # ── 确定主因 ──
+        primary = max(scores, key=scores.get)
+        primary_conf = scores[primary]
+
+        # ── 建议 ──
+        recommendations = {
+            "outcome_engine": "校准 Outcome Engine 的 ROI 回归参数，增加 margin 因子权重",
+            "policy_engine": "审查相关 Policy 的评分调整量，降低过度乐观 Policy 的权重",
+            "agent": "降低相关 Agent 的 influence_weight，引入竞争 Agent",
+            "data_quality": "积累更多真实数据（当前样本不足），暂时降低 Confidence Score 阈值",
+            "external_shock": "记录外部因素并纳入模型，考虑添加市场事件检测器",
+        }
+
+        return {
+            "primary_engine": primary,
+            "confidence": round(primary_conf, 4),
+            "engine_scores": scores,
+            "recommendation": recommendations.get(primary, "继续监控"),
+            "decomposition": {
+                "predicted_roi": record.predicted_roi,
+                "actual_roi": record.actual_roi,
+                "error_pct": record.error_pct,
+                "error_magnitude": record.error_magnitude,
+                "analysis": f"主要误差来源: {primary} (置信度: {primary_conf:.0%})",
+            }
+        }
+
+    # ----------------------------------------------------------
+    # 3. 校准建议
+    # ----------------------------------------------------------
+
+    def calibration_actions(self) -> list[dict]:
+        """
+        基于历史预测误差生成校准建议。
+
+        Returns:
+            [{"engine": str, "action": str, "priority": str, "detail": str}]
+        """
+        conn = self._kg()
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                SELECT prediction_id, opp_id, predicted_roi, actual_roi,
+                       error_pct, error_magnitude, attribution
+                FROM prediction_error_attributions
+                ORDER BY recorded_at DESC
+                LIMIT 100
+            """)
+            errors = [dict(r) for r in cur.fetchall()]
+        except Exception:
+            errors = []
+        conn.close()
+
+        if not errors:
+            return [{"engine": "system", "action": "collect_data",
+                     "priority": "high", "detail": "暂无误差数据，需要先积累真实结果"}]
+
+        # 统计各引擎的归因次数
+        engine_hits = {}
+        for e in errors:
+            attr = json.loads(e.get("attribution", "{}"))
+            primary = attr.get("primary_engine", "unknown")
+            engine_hits[primary] = engine_hits.get(primary, 0) + 1
+
+        total = len(errors)
+        actions = []
+
+        for engine, count in sorted(engine_hits.items(), key=lambda x: -x[1]):
+            pct = count / total * 100
+            if pct > 30:
+                priority = "high"
+            elif pct > 15:
+                priority = "medium"
+            else:
+                priority = "low"
+
+            recommendations = {
+                "outcome_engine": f"Outcome Engine 被归因 {count}/{total} 次 ({pct:.0f}%)，需要校准 ROI 回归权重",
+                "policy_engine": f"Policy Engine 被归因 {count}/{total} 次 ({pct:.0f}%)，需要审查 Policy 评分偏差",
+                "agent": f"Agent 被归因 {count}/{total} 次 ({pct:.0f}%)，需要调整 Agent 竞争权重",
+                "data_quality": f"数据质量被归因 {count}/{total} 次 ({pct:.0f}%)，需要增加真实数据采集",
+                "external_shock": f"外部冲击被归因 {count}/{total} 次 ({pct:.0f}%)，需要添加外部因子检测",
+            }
+
+            actions.append({
+                "engine": engine,
+                "action": recommendations.get(engine, f"审查 {engine} 模块"),
+                "priority": priority,
+                "detail": f"归因次数: {count}/{total} ({pct:.0f}%)",
+            })
+
+        # 总体校准偏差
+        over_count = sum(1 for e in errors if e.get("error_magnitude") == "over")
+        under_count = sum(1 for e in errors if e.get("error_magnitude") == "under")
+        if over_count > under_count * 1.5:
+            actions.append({
+                "engine": "system",
+                "action": "系统存在乐观偏差（预测过高），需要整体下调 Confidence Score",
+                "priority": "high",
+                "detail": f"过度预测: {over_count}, 不足预测: {under_count}",
+            })
+        elif under_count > over_count * 1.5:
+            actions.append({
+                "engine": "system",
+                "action": "系统存在保守偏差（预测过低），需要放松 Policy 限制",
+                "priority": "medium",
+                "detail": f"过度预测: {over_count}, 不足预测: {under_count}",
+            })
+
+        return actions
+
+    # ----------------------------------------------------------
+    # 4. 归因报告
+    # ----------------------------------------------------------
+
+    def generate_report(self) -> dict:
+        """生成完整的误差归因报告"""
+        conn = self._kg()
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT COUNT(*) FROM prediction_error_attributions")
+            total_errors = cur.fetchone()[0]
+        except Exception:
+            total_errors = 0
+
+        # 安全查询 error_magnitude（兼容旧表结构）
+        magnitude_dist = {}
+        if total_errors > 0:
+            try:
+                cur.execute("""
+                    SELECT error_magnitude, COUNT(*) as cnt
+                    FROM prediction_error_attributions
+                    WHERE error_magnitude IS NOT NULL AND error_magnitude != ''
+                    GROUP BY error_magnitude
+                """)
+                magnitude_dist = dict(cur.fetchall())
+            except Exception:
+                pass
+
+        avg_abs_error = 0
+        if total_errors > 0:
+            try:
+                cur.execute("""
+                    SELECT AVG(ABS(error_pct)) FROM prediction_error_attributions
+                    WHERE error_pct IS NOT NULL
+                """)
+                avg_abs_error = cur.fetchone()[0] or 0
+            except Exception:
+                pass
+
+        conn.close()
+
+        return {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "total_errors": total_errors,
+            "avg_abs_error_pct": round(avg_abs_error, 2),
+            "magnitude_distribution": magnitude_dist,
+            "calibration_actions": self.calibration_actions(),
+            "system_bias": "over" if magnitude_dist.get("over", 0) > magnitude_dist.get("under", 0) * 1.5
+                          else "under" if magnitude_dist.get("under", 0) > magnitude_dist.get("over", 0) * 1.5
+                          else "balanced",
+        }
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # CLI 入口
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1270,6 +1678,12 @@ Examples:
 
   # 系统状态摘要
   python learning_loop.py --summary
+
+  # V9.2: 预测误差归因报告
+  python learning_loop.py --attribution
+
+  # V9.2: 生成校准建议
+  python learning_loop.py --calibrate
         """,
     )
 
@@ -1277,6 +1691,8 @@ Examples:
     parser.add_argument("--detect", action="store_true", help="检测失败模式")
     parser.add_argument("--decay", action="store_true", help="执行KG边权重衰减")
     parser.add_argument("--summary", action="store_true", help="输出学习系统状态摘要")
+    parser.add_argument("--attribution", action="store_true", help="V9.2: 生成预测误差归因报告")
+    parser.add_argument("--calibrate", action="store_true", help="V9.2: 生成校准建议")
 
     # --capture 参数
     parser.add_argument("--opp_id", type=str, help="机会ID")
@@ -1302,7 +1718,8 @@ Examples:
     args = parser.parse_args()
 
     # 至少指定一个命令
-    if not any([args.capture, args.detect, args.decay, args.summary]):
+    if not any([args.capture, args.detect, args.decay, args.summary,
+                args.attribution, args.calibrate]):
         parser.print_help()
         return 1
 
@@ -1319,6 +1736,40 @@ Examples:
         return cmd_decay(args)
     elif args.summary:
         return cmd_summary(args)
+    elif args.attribution:
+        """V9.2: 生成预测误差归因报告"""
+        eae = ErrorAttributionEngine()
+        report = eae.generate_report()
+        print(f"\n{'='*60}")
+        print(f"  Error Attribution Report — V9.2")
+        print(f"{'='*60}")
+        print(f"\n  总误差记录: {report['total_errors']}")
+        print(f"  平均绝对误差: {report['avg_abs_error_pct']:.1f}%")
+        print(f"  系统偏差: {report['system_bias']}")
+        print(f"\n  偏差分布: {report['magnitude_distribution']}")
+        print(f"\n  校准建议:")
+        for a in report['calibration_actions']:
+            emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(a['priority'], '⚪')
+            print(f"    {emoji} [{a['priority']}] {a['action']}")
+            print(f"       {a['detail']}")
+        print(f"\n{'='*60}")
+        return 0
+    elif args.calibrate:
+        """V9.2: 生成校准建议"""
+        eae = ErrorAttributionEngine()
+        actions = eae.calibration_actions()
+        print(f"\n{'='*60}")
+        print(f"  Calibration Actions — V9.2")
+        print(f"{'='*60}")
+        if not actions:
+            print("  (暂无校准建议)")
+        for i, a in enumerate(actions, 1):
+            emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(a['priority'], '⚪')
+            print(f"\n  {i}. {emoji} [{a['priority'].upper()}] {a['engine']}")
+            print(f"     {a['action']}")
+            print(f"     {a['detail']}")
+        print(f"\n{'='*60}")
+        return 0
 
     return 0
 

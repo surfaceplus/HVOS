@@ -1,0 +1,26 @@
+{
+  "session_id": "test-session-001",
+  "messages": [
+    {
+      "role": "user",
+      "content": "选厨房产品",
+      "tool_calls": null,
+      "tool_call_id": null,
+      "timestamp": "2026-06-16T06:40:55.636282"
+    }
+  ],
+  "created_at": "2026-06-16T06:40:55.636282",
+  "updated_at": "2026-06-16T06:40:55.636282",
+  "metadata": {
+    "model": "HVOS"
+  },
+  "memory": {
+    "last_product_selector_result": {
+      "success": true,
+      "tool": "product_selector",
+      "count": 0,
+      "category": "kitchen",
+      "products": []
+    }
+  }
+}

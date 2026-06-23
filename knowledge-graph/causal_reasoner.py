@@ -130,14 +130,14 @@ class CausalReasoningEngine:
           INVESTMENT_DECISION_RENDERED → decision
           RFE_ACTUAL_RECORDED → outcome
         """
-        conn = self._es_conn()
+        conn = self._kg_conn()
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT event_id, event_type, actor, description, timestamp, data
-            FROM event_log
-            WHERE opportunity_id = ?
-            ORDER BY timestamp
+            SELECT event_id, event_type, action, detail, ts, detail
+            FROM kg_event_log
+            WHERE event_id = ?
+            ORDER BY ts
         """, (opp_id,))
 
         events = []

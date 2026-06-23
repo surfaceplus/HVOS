@@ -1,0 +1,73 @@
+{
+  "session_id": "adapter-test-001",
+  "messages": [
+    {
+      "role": "user",
+      "content": "计算5000元月收入ROI",
+      "tool_calls": null,
+      "tool_call_id": null,
+      "timestamp": "2026-06-16T06:50:39.771927"
+    },
+    {
+      "role": "user",
+      "content": "第二次请求",
+      "tool_calls": null,
+      "tool_call_id": null,
+      "timestamp": "2026-06-16T06:50:41.819384"
+    }
+  ],
+  "created_at": "2026-06-16T06:50:39.771927",
+  "updated_at": "2026-06-16T06:50:41.819384",
+  "metadata": {
+    "model": "HVOS"
+  },
+  "memory": {
+    "last_roi_calculator_result": {
+      "success": true,
+      "tool": "roi_calculator",
+      "input": {
+        "predicted_revenue": 5000,
+        "horizon_days": 30,
+        "currency": "USD",
+        "cogs_pct": 0.28,
+        "advertising_cost_pct": 0.15
+      },
+      "output": {
+        "revenue": 5000,
+        "revenue_low": 0.0,
+        "revenue_high": 0.0,
+        "cogs": 1400.0,
+        "cogs_pct": 28.0,
+        "advertising_cost": 750.0,
+        "advertising_cost_pct": 15.0,
+        "shipping_cost": 250.0,
+        "packaging_cost": 100.0,
+        "transaction_fee": 145.0,
+        "transaction_fee_pct": 2.9,
+        "platform_fee": 100.0,
+        "platform_fee_pct": 2.0,
+        "other_cost": 0.0,
+        "total_cost": 2745.0,
+        "gross_profit": 3600.0,
+        "gross_margin": 0.72,
+        "gross_margin_pct": 72.0,
+        "net_profit": 2255.0,
+        "net_margin": 0.451,
+        "investment_amount": 2500.0,
+        "roi": 0.902,
+        "roi_pct": 90.2,
+        "payback_days": 33.3,
+        "horizon_days": 30,
+        "currency": "USD",
+        "model_version": "1.0.0",
+        "timestamp": "2026-06-15T22:50:39.771927+00:00"
+      },
+      "summary": {
+        "gross_margin_pct": "72.0%",
+        "net_margin_pct": "45.1%",
+        "roi_pct": "90.2%",
+        "payback_days": "33 days"
+      }
+    }
+  }
+}

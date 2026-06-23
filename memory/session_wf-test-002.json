@@ -1,0 +1,58 @@
+{
+  "session_id": "wf-test-002",
+  "messages": [],
+  "created_at": "2026-06-16T07:10:54.347349",
+  "updated_at": "2026-06-16T07:10:54.347349",
+  "metadata": {
+    "model": "HVOS"
+  },
+  "memory": {
+    "last_roi_calculator_result": {
+      "success": true,
+      "tool": "roi_calculator",
+      "input": {
+        "predicted_revenue": 8000,
+        "horizon_days": 30,
+        "currency": "USD",
+        "cogs_pct": 0.28,
+        "advertising_cost_pct": 0.15
+      },
+      "output": {
+        "revenue": 8000,
+        "revenue_low": 0.0,
+        "revenue_high": 0.0,
+        "cogs": 2240.0,
+        "cogs_pct": 28.0,
+        "advertising_cost": 1200.0,
+        "advertising_cost_pct": 15.0,
+        "shipping_cost": 400.0,
+        "packaging_cost": 160.0,
+        "transaction_fee": 232.0,
+        "transaction_fee_pct": 2.9,
+        "platform_fee": 160.0,
+        "platform_fee_pct": 2.0,
+        "other_cost": 0.0,
+        "total_cost": 4392.0,
+        "gross_profit": 5760.0,
+        "gross_margin": 0.72,
+        "gross_margin_pct": 72.0,
+        "net_profit": 3608.0,
+        "net_margin": 0.451,
+        "investment_amount": 4000.0,
+        "roi": 0.902,
+        "roi_pct": 90.2,
+        "payback_days": 33.3,
+        "horizon_days": 30,
+        "currency": "USD",
+        "model_version": "1.0.0",
+        "timestamp": "2026-06-15T23:10:54.347349+00:00"
+      },
+      "summary": {
+        "gross_margin_pct": "72.0%",
+        "net_margin_pct": "45.1%",
+        "roi_pct": "90.2%",
+        "payback_days": "33 days"
+      }
+    }
+  }
+}

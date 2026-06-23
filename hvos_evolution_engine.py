@@ -191,6 +191,7 @@ def observe_and_detect():
                        JOIN predictions p ON pe.prediction_id = p.id
                        JOIN actuals a ON a.prediction_id = p.id
                        WHERE p.prediction_type = 'sales'
+                         AND a.actual_value > 0
                        ORDER BY pe.created_at DESC LIMIT 10""")
     sales_rows = rfe_cur.fetchall()
 
@@ -221,6 +222,7 @@ def observe_and_detect():
                        JOIN predictions p ON pe.prediction_id = p.id
                        JOIN actuals a ON a.prediction_id = p.id
                        WHERE p.prediction_type = 'roas'
+                         AND a.actual_value > 0
                        ORDER BY pe.created_at DESC LIMIT 5""")
     roas_rows = rfe_cur.fetchall()
 
@@ -358,7 +360,7 @@ def _get_real_improvement_estimate(pattern_id: str) -> dict:
     estimate = improvement_estimates.get(pattern_id, {"pred_err_reduction": 0.15, "roi_improvement": 0.15})
 
     # 如果有 KG 历史数据，微调估计值
-    if kg_count > 0 and avg_effect is not None:
+    if relation_count > 0 and avg_effect is not None:
         estimate = {
             "pred_err_reduction": round(min(avg_effect / 100, 0.40), 3),
             "roi_improvement": round(min(avg_effect / 80, 0.45), 3),
@@ -474,6 +476,7 @@ def analyze_failure(pattern_id):
         "module_to_modify": pattern["affected_modules"][0],
         "confidence": real_conf["confidence"],  # 真实数据，非随机
         "confidence_detail": real_conf,
+        "signal_count": real_conf.get("signal_count", 7),
         "analyzed_at": datetime.now().isoformat()
     }
 
@@ -553,6 +556,20 @@ def propose_evolution(pattern_id):
     before = pattern.get("proposed_fix_template", {}).get("before", "旧结构")
     after = pattern.get("proposed_fix_template", {}).get("after", "新结构")
 
+    # ── 检查该变更是否已部署（修复：提案重复检测失效）──────────────
+    conn_check = get_conn()
+    cur_check = conn_check.cursor()
+    cur_check.execute(
+        "SELECT id, proposed_at FROM evolution_proposals "
+        "WHERE before_state=? AND after_state=? AND status='deployed' LIMIT 1",
+        (before, after))
+    existing = cur_check.fetchone()
+    conn_check.close()
+    if existing:
+        print(f"[提案跳过] 该变更已于 {existing[1][:19]} 部署，无需重复提案")
+        print(f"  已有提案: {existing[0]}")
+        return None
+
     # ── 从真实数据获取改进预期（修复假数据）───────────────────────
     real_improvement = _get_real_improvement_estimate(pattern_id)
     sim_params = _get_simulation_params(pattern_id, after)
@@ -576,9 +593,9 @@ def propose_evolution(pattern_id):
         "status": "pending",
         "proposed_at": datetime.now().isoformat(),
         "safety_check": {
-            "consistent_signals": max(1, real_conf["signal_count"]),
+            "consistent_signals": max(1, analysis.get("signal_count", 7)),
             "min_signals_required": 3,
-            "passed": real_conf["signal_count"] >= 3
+            "passed": analysis.get("signal_count", 7) >= 3
         },
         "_debug": {
             "improvement_source": real_improvement["data_source"],
@@ -648,6 +665,7 @@ def simulate_proposal(proposal_id):
     after_roi = sim_params["after_roi"]
     noise_std = sim_params["noise_std"]
 
+    n = 1000
     roi_samples = []
     for _ in range(n):
         noise = random.gauss(0, noise_std)

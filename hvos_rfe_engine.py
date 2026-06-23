@@ -237,7 +237,7 @@ def rfe_status():
     if pending:
         print(f"\n  ⚠️  待录入实际结果: {len(pending)} 条")
         for row in pending[:5]:
-            days_since = (date.today() - date.fromisoformat(str(row[4]))).days
+            days_since = (date.today() - date.fromisoformat(str(row[5]))).days
             overdue = f"（已逾期 {days_since - row[3]} 天）" if days_since > row[3] else ""
             print(f"    {row[0]} | {row[2]} {row[3]}d | 预测:{row[4]} {overdue}")
         if len(pending) > 5:

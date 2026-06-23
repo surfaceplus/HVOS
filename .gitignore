@@ -38,3 +38,28 @@ reality/events.db
 # IDE
 .vscode/
 .idea/
+# HVOS Version Archives (do not sync — source of truth is active tree)
+HVOS_PHASE3_FULL_*/
+HVOS_V10/
+HVOS_V10_PKG/
+HVOS_V9_ANALYSIS_PACKAGE/
+HVOS_V9_ARCHITECTURE.md
+HVOS_V9_BACKUP/
+HVOS_V9_BACKUP_20260611_1131/
+HVOS_V9_ARCHIVE/
+HVOS_V8_ARCHIVE/
+HVOS_V9_ARCHIVE.zip
+HVOS_V9_BACKUP_20260611_1131.zip
+HVOS_V10_PKG.zip
+
+# Generated reports (user data — do not sync)
+ar_trending_report.json
+ar_trending_signals.json
+woo_products*.json
+v10_category_scout_results.json
+v10_reality_scored.json
+woo_reality_scored.json
+闭环测试报告*.json
+
+# Integration files (local only — contain API keys)
+reality_config.json

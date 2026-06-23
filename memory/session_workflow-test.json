@@ -1,0 +1,12 @@
+{
+  "session_id": "workflow-test",
+  "messages": [],
+  "created_at": "2026-06-16T07:07:21.309099",
+  "updated_at": "2026-06-16T07:07:31.936824",
+  "metadata": {
+    "model": "HVOS"
+  },
+  "memory": {
+    "last_workflow_pipeline_result": {}
+  }
+}

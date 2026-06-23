@@ -39,12 +39,16 @@ sys.path.insert(0, HVOS)
 
 from kg_event_consumer import KGEventConsumer
 from strategy_memory import StrategyMemory
-from policy_learning_engine import PolicyLearningEngine
+from policy_learning_engine import PolicyLearningEngine, PolicyCompressionEngine
 from agent_factory import AgentFactory
 from knowledge_reasoner import KnowledgeReasoner
 from pattern_mining_engine import PatternMiningEngine
 from causal_reasoner import CausalReasoningEngine
 from agent_ecology import AgentEcologyEngine
+
+# V9.2 模块
+sys.path.insert(0, rf"{HVOS}\knowledge-graph")
+from learning_loop import LearningLoop, ErrorAttributionEngine
 
 
 # ============================================================
@@ -478,6 +482,130 @@ class HVOS9SelfTrainer:
             }
         }
 
+    # ----------------------------------------------------------
+    # V9.2 Step 9: Learning Loop — 持续学习
+    # ----------------------------------------------------------
+
+    def _run_learning_loop(self, opp_data: dict, outcome: str) -> dict:
+        """完整学习闭环：因果因素 + KG边权重 + 失败模式"""
+        loop = LearningLoop()
+        result = loop.run(
+            opp_id=opp_data["opp_id"],
+            success=(outcome == "success"),
+            roi=opp_data.get("roi_actual", 0),
+            cvr=opp_data.get("cvr", 0),
+            ctr=opp_data.get("ctr", 0),
+            aov=opp_data.get("aov", 0),
+            refund_rate=opp_data.get("refund_rate", 0),
+            category=opp_data.get("category", ""),
+            market=opp_data.get("market", "US"),
+            publish=True,
+        )
+        return {
+            "step": "Learning Loop",
+            "causal_factors": result.get("causal_factors", []),
+            "edge_update": result.get("edge_update", {}),
+        }
+
+    # ----------------------------------------------------------
+    # V9.2 Step 10: Error Attribution — 预测误差归因
+    # ----------------------------------------------------------
+
+    def _record_prediction_error(self, opp_data: dict, predicted_roi: float) -> dict:
+        """记录预测误差并归因"""
+        if "roi_actual" not in opp_data or not opp_data.get("roi_actual"):
+            return {"step": "Error Attribution", "status": "skipped_no_actual"}
+        eae = ErrorAttributionEngine()
+        record = eae.record_prediction_error(
+            prediction_id=f"pred_{uuid.uuid4().hex[:12]}",
+            opp_id=opp_data["opp_id"],
+            predicted_roi=predicted_roi,
+            actual_roi=opp_data.get("roi_actual", 0),
+            actual_cvr=opp_data.get("cvr", 0),
+            actual_ctr=opp_data.get("ctr", 0),
+            actual_aov=opp_data.get("aov", 0),
+            actual_refund_rate=opp_data.get("refund_rate", 0),
+            category=opp_data.get("category", ""),
+            market=opp_data.get("market", "US"),
+        )
+        return {
+            "step": "Error Attribution",
+            "prediction_id": record.prediction_id,
+            "error_pct": record.error_pct,
+            "error_magnitude": record.error_magnitude,
+            "primary_engine": record.attribution.get("primary_engine", ""),
+            "recommendation": record.attribution.get("recommendation", ""),
+        }
+
+    # ----------------------------------------------------------
+    # V9.2 Step 11: Policy Compression — 策略瘦身
+    # ----------------------------------------------------------
+
+    def _run_policy_compression(self) -> dict:
+        """Policy 压缩：同义合并 + 低效归档"""
+        pce = PolicyCompressionEngine(STRATEGY_DB)
+        report = pce.run_compression(dry_run=False)
+        return {
+            "step": "Policy Compression",
+            "duplicates_found": report["duplicates_found"],
+            "auto_merged": report["auto_merged"],
+            "archived": report["archive_result"]["archived"],
+            "deleted": report["archive_result"]["deleted"],
+            "total_after": report["total_policies"],
+        }
+
+    # ----------------------------------------------------------
+    # V9.2 增强 full_cycle
+    # ----------------------------------------------------------
+
+    def full_cycle_v92(self, test_opportunity: dict = None) -> dict:
+        """
+        V9.2 增强闭环（在 V9.0 基础上增加学习+归因+压缩）。
+
+        在 V9.0 的 8 步闭环后，新增：
+          Step 9:  Learning Loop（持续学习）
+          Step 10: Error Attribution（误差归因）
+          Step 11: Policy Compression（策略压缩）
+        """
+        # 先跑 V9.0 标准闭环
+        base = self.full_cycle(test_opportunity)
+        steps = base.get("steps", [])
+        test_opp = test_opportunity or {
+            "opp_id": f"opp_v92_{uuid.uuid4().hex[:8]}",
+            "name": "Smart Water Bottle with UV Purification",
+            "category": "户外用品",
+            "market": "US",
+            "roi_actual": 2.8,
+            "cvr": 0.035,
+            "ctr": 0.042,
+            "aov": 89,
+            "refund_rate": 0.04,
+        }
+        if test_opportunity:
+            test_opp = test_opportunity
+
+        outcome = "success" if test_opp.get("roi_actual", 0) > 1.0 else "failure"
+
+        # Step 9: Learning Loop
+        s9 = self._run_learning_loop(test_opp, outcome)
+        steps.append(s9)
+
+        # Step 10: Error Attribution（模拟预测 ROI=2.0 vs 实际）
+        s10 = self._record_prediction_error(test_opp, predicted_roi=2.0)
+        steps.append(s10)
+
+        # Step 11: Policy Compression
+        s11 = self._run_policy_compression()
+        steps.append(s11)
+
+        base["steps"] = steps
+        base["summary"]["steps_completed"] = len(steps)
+        base["summary"]["v92_learning_loop"] = s9.get("edge_update", {}).get("updated", 0)
+        base["summary"]["v92_error_attribution"] = s10.get("error_magnitude", "")
+        base["summary"]["v92_policy_compression"] = f"{s11['auto_merged']} merged, {s11['archived']} archived"
+        base["v92_version"] = "1.0.0"
+        return base
+
 
 # ============================================================
 # CLI
@@ -486,8 +614,10 @@ class HVOS9SelfTrainer:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="HVOS V9.0 自我训练引擎")
-    parser.add_argument("--action", choices=["full_cycle", "health_report", "incremental"],
-                       default="full_cycle")
+    parser.add_argument("--action", choices=[
+        "full_cycle", "health_report", "incremental",
+        "full_cycle_v92", "compress", "attribution"
+    ], default="full_cycle")
     parser.add_argument("--opp_name")
     parser.add_argument("--category")
     parser.add_argument("--market", default="US")
@@ -515,3 +645,63 @@ if __name__ == "__main__":
         }
         result = trainer.full_cycle(test_opportunity=opp)
         print(json.dumps(result, indent=2, ensure_ascii=False))
+
+    elif args.action == "full_cycle_v92":
+        """V9.2 增强闭环"""
+        print("=" * 60)
+        print("  HVOS V9.2 — 增强自我训练闭环（11步）")
+        print("=" * 60)
+        opp = None
+        if args.opp_name:
+            opp = {
+                "opp_id": f"opp_v92_{uuid.uuid4().hex[:8]}",
+                "name": args.opp_name,
+                "category": args.category or "general",
+                "market": args.market,
+                "roi_actual": 2.8,
+                "cvr": 0.035,
+                "ctr": 0.042,
+                "aov": 89,
+                "refund_rate": 0.04,
+                "margin": 0.68,
+            }
+        result = trainer.full_cycle_v92(test_opportunity=opp)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print(f"\n✅ V9.2 闭环完成 — {result['summary']['steps_completed']} steps")
+
+    elif args.action == "compress":
+        """V9.2 Policy 压缩"""
+        pce = PolicyCompressionEngine(STRATEGY_DB)
+        report = pce.run_compression(dry_run=False)
+        print("=" * 60)
+        print("  HVOS V9.2 — Policy Compression")
+        print("=" * 60)
+        print(f"\n  重复对:     {report['duplicates_found']}")
+        print(f"  自动合并:   {report['auto_merged']}")
+        ar = report['archive_result']
+        print(f"  归档:       {ar['archived']}")
+        print(f"  删除:       {ar['deleted']}")
+        print(f"  保留:       {ar['kept']}")
+        print(f"\n  最终统计:")
+        print(f"    active:   {report.get('count_active', 0)}")
+        print(f"    pending:  {report.get('count_pending', 0)}")
+        print(f"    weak:     {report.get('count_weak', 0)}")
+        print(f"    archived: {report.get('count_archived', 0)}")
+        print(f"    total:    {report['total_policies']}")
+        print(f"\n✅ Policy 压缩完成")
+
+    elif args.action == "attribution":
+        """V9.2 误差归因报告"""
+        eae = ErrorAttributionEngine()
+        report = eae.generate_report()
+        print("=" * 60)
+        print("  HVOS V9.2 — Error Attribution Report")
+        print("=" * 60)
+        print(f"\n  总误差记录: {report['total_errors']}")
+        print(f"  平均绝对误差: {report['avg_abs_error_pct']:.1f}%")
+        print(f"  系统偏差: {report['system_bias']}")
+        print(f"\n  校准建议:")
+        for a in report['calibration_actions']:
+            emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(a['priority'], '⚪')
+            print(f"    {emoji} [{a['priority']}] {a['action']}")
+        print(f"\n✅ 归因报告完成")

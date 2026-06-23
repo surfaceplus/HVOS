@@ -27,6 +27,10 @@ logger = logging.getLogger(__name__)
 # 数据模型
 # ─────────────────────────────────────────────────────────────────────────────
 
+# HVOS V10 Multi-Platform Bridge imports
+from .amazon_collector import search_categories as amazon_search_cat, collect_market_intel as amazon_collect_intel
+from .collector_1688 import search_products as alibaba_search, research_keywords as alibaba_research
+
 class EventSource(Enum):
     """事件来源平台"""
     SHOPIFY = "shopify"
@@ -34,6 +38,8 @@ class EventSource(Enum):
     META = "meta"
     TIKTOK = "tiktok"
     GOOGLE = "google"
+    AMAZON = "amazon"
+    ALIBABA = "alibaba_1688"
     MANUAL = "manual"
 
 
@@ -190,6 +196,8 @@ class RealityHubConfig:
     meta: PlatformConfig = field(default_factory=PlatformConfig)
     tiktok: PlatformConfig = field(default_factory=PlatformConfig)
     google: PlatformConfig = field(default_factory=PlatformConfig)
+    amazon: PlatformConfig = field(default_factory=PlatformConfig)
+    alibaba: PlatformConfig = field(default_factory=PlatformConfig)
 
     # 全局设置
     event_store_path: str = "reality/events.db"
@@ -1765,6 +1773,9 @@ class RealityHub:
         self.google = GoogleTrendsCollector(
             self.config.google, self.event_store, self.event_bus, self.anomaly_detector
         )
+        # Amazon / 1688 / Shopify-spy collectors (轻量级 — 不跑 EventBus, 直接返回 JSON)
+        self.amazon_enabled = self.config.amazon.enabled if hasattr(self.config, 'amazon') else False
+        self.alibaba_enabled = self.config.alibaba.enabled if hasattr(self.config, 'alibaba') else False
 
         # 订阅者
         self._subscribers: list[callable] = []
@@ -1830,6 +1841,35 @@ class RealityHub:
         except Exception as e:
             logger.error(f"TikTok collect failed: {e}")
             results["tiktok"] = {"events": 0, "status": f"error: {e}"}
+
+        # Amazon Market Intelligence (APIClaw — fast categories endpoint)
+        if self.amazon_enabled:
+            try:
+                from reality.amazon_collector import collect_market_intel as amazon_fast_collect
+                amazon_events = amazon_fast_collect(keywords=["gift box", "home decor", "kitchen", "outdoor", "pet supply", "beauty", "fitness"])
+                results["amazon"] = {"events": len(amazon_events), "status": "ok"}
+                all_events.extend(amazon_events)
+                logger.info(f"Amazon collector: {len(amazon_events)} events")
+            except Exception as e:
+                logger.error(f"Amazon collect failed: {e}")
+                results["amazon"] = {"events": 0, "status": f"error: {e}"}
+        else:
+            results["amazon"] = {"events": 0, "status": "disabled"}
+
+        # 1688 Supply Chain (Alibaba)
+        if self.alibaba_enabled:
+            try:
+                alibaba_keywords = ["礼品盒", "gift box", "party decoration", "home decor"]
+                snapshots = alibaba_research(*alibaba_keywords)
+                alibaba_events = [s.to_event_dict() for s in snapshots if hasattr(s, 'to_event_dict')]
+                results["alibaba"] = {"events": len(alibaba_events), "status": "ok"}
+                all_events.extend(alibaba_events)
+                logger.info(f"1688 collector: {len(alibaba_events)} snapshots")
+            except Exception as e:
+                logger.error(f"1688 collect failed: {e}")
+                results["alibaba"] = {"events": 0, "status": f"error: {e}"}
+        else:
+            results["alibaba"] = {"events": 0, "status": "disabled"}
 
         # Google Trends
         try:
