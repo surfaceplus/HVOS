@@ -1958,20 +1958,14 @@ class RealityHub:
             try:
                 from reasoning.causal_intelligence_engine import CausalIntelligenceEngine
                 cau = CausalIntelligenceEngine()
-                added = 0
-                for event in all_events[:20]:  # 最多20条
-                    cat = event.get("category", "unknown")
-                    val = event.get("metric_value", 0)
-                    if val:
-                        node_id = f"demand_{cat.replace(' ', '_')}"
-                        cau.add_node(node_id=node_id, label=cat, domain=[event.get("source","amazon")])
-                        source = event.get("source", "amazon")
-                        cau.add_edge(from_id=source, to_id=node_id, strength=0.5, confidence=0.5)
-                        added += 1
-                if added:
-                    logger.info(f"CausalIntelligence: {added} nodes added to graph")
+                # infer_causal_graph() reads from EventStore + KG and builds causal structure
+                result = cau.infer_causal_graph(category="multi_platform", market="US")
+                if result:
+                    logger.info(f"CausalIntelligence: graph inferred — {result.get('nodes',0)} nodes, {result.get('edges',0)} edges")
+                else:
+                    logger.info("CausalIntelligence: no causal relationships found yet")
             except Exception as e:
-                logger.warning(f"CausalIntelligence add_node failed: {e}")
+                logger.warning(f"CausalIntelligence infer_causal_graph failed: {e}")
 
         logger.info(f"=== RealityHub.collect() 完成: {len(all_events)} events ===")
         return results
