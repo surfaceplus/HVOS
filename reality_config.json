@@ -1,8 +1,8 @@
 {
   "shopify": {
-    "enabled": false,
-    "store_url": "https://your-store.myshopify.com",
-    "access_token": "YOUR_SHOPIFY_ACCESS_TOKEN",
+    "enabled": true,
+    "store_url": "https://hiugift.com",
+    "access_token": "",
     "shop_id": "",
     "anomaly_threshold_pct": 20.0,
     "check_interval_minutes": 60
