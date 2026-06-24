@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 from .amazon_collector import search_categories as amazon_search_cat, collect_market_intel as amazon_collect_intel
 from .collector_1688 import search_products as alibaba_search, research_keywords as alibaba_research
 from .shopify_collector import collect_store_products as shopify_collect
+from .analytics_dashboard import AnalyticsDashboard, AdComplianceChecker
+from .pricing_engine import PricingEngine
 
 class EventSource(Enum):
     """事件来源平台"""
@@ -2137,3 +2139,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
