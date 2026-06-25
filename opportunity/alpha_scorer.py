@@ -100,8 +100,17 @@ class AlphaScorer:
         "breadth": 0.25,           # 跨平台信号汇聚程度
         "depth": 0.15,             # 供应链深度
         "competition_gap": 0.15,    # 竞争缺口
-        "seasonal": 0.10            # 季节性窗口
+        "seasonal": 0.10,           # 季节性窗口
     }
+
+    # V10.1: Social heat weights (normalized 0-100)
+    WEIGHTS_SOCIAL = {
+        "tiktok_viral": 0.50,
+        "xiaohongshu": 0.30,
+        "aliexpress": 0.20,
+    }
+
+    # 季节性窗口配置
 
     # 置信度折扣表（各数据源可靠性）
     CONFIDENCE_DISCOUNT = {
@@ -112,6 +121,11 @@ class AlphaScorer:
         "customs": 0.75,
         "hackernews": 0.85,
         "serpapi": 0.90,     # SerpAPI = Google Trends 同级（真实数据）
+        # V10.1: BSR + social heat sources
+        "bsr_collector": 0.85,
+        "xiaohongshu": 0.75,
+        "tiktok_viral": 0.80,
+        "aliexpress": 0.70,
     }
 
     # 季节性窗口配置
