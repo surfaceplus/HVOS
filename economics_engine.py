@@ -58,7 +58,7 @@ class EconomicsInput:
     tax_rate: float = 0.0
 
 
-@dataclass
+@dataclass(kw_only=True)
 class EconomicsForecast:
     """经济模型输出（完整分解）"""
     # 收入
