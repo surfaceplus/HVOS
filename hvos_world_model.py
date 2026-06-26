@@ -89,7 +89,7 @@ class StateTransition:
             transition_id=row["transition_id"], opp_id=row["opp_id"],
             from_state=from_state, action=OpportunityAction(row["action"]), to_state=to_state,
             causation_event_id=row["causation_event_id"], correlation_id=row["correlation_id"],
-            sequence=row["sequence"], timestamp=row["timestamp"], basis=row.get("basis", ""),
+            sequence=row["sequence"], timestamp=row["timestamp"], basis=dict(row).get('basis', ''),
         )
 
 
@@ -214,6 +214,29 @@ class WorldModelStore:
             conn.close()
         return t
 
+    def get_all_states(self) -> List[OpportunityState]:
+        conn = self._conn()
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM world_state")
+        rows = cur.fetchall()
+        conn.close()
+        states = []
+        for row in rows:
+            r = dict(row)
+            states.append(OpportunityState(
+                opp_id=r["opp_id"], stage=OpportunityStage(r["stage"]),
+                demand_score=r["demand_score"], trend_score=r["trend_score"],
+                supply_score=r["supply_score"], margin_estimate=r["margin_estimate"],
+                risk_score=r["risk_score"], confidence=r["confidence"],
+                roi_estimate=r["roi_estimate"], invested_amount=r["invested_amount"],
+                monthly_profit_low=r["monthly_profit_low"], monthly_profit_high=r["monthly_profit_high"],
+                alpha_score=r["alpha_score"],
+                last_action=OpportunityAction(r["last_action"]) if r["last_action"] else None,
+                sequence=r["sequence"], updated_at=r["updated_at"],
+            ))
+        return states
+    
     def get_transitions(self, opp_id: str, limit: int = 100) -> List[StateTransition]:
         conn = self._conn()
         conn.row_factory = sqlite3.Row

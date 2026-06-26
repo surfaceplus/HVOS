@@ -1,7 +1,7 @@
 """HVOS V10.2 - RFE + Event Backbone Integration"""
 from __future__ import annotations
 import sqlite3, json, uuid, logging, os
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,10 @@ except Exception:
 
 
 def get_conn():
-    return sqlite3.connect(KG_DB)
+    conn = sqlite3.connect(KG_DB, timeout=30)
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=30000")
+    return conn
 
 
 def calculate_prediction_error(predicted, actual):
@@ -56,20 +59,25 @@ def record_prediction(
     """
     conn = get_conn()
     cur = conn.cursor()
-    pred_id = f"pred_{pred_type}_{horizon_days}d_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    pred_id = f"pred_{pred_type}_{horizon_days}d_{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:6]}"
 
-    cur.execute(
-        """INSERT INTO predictions
-        (id, product_id, prediction_date, prediction_type, horizon_days,
-         predicted_value, predicted_low, predicted_high, prediction_basis, model_version, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (
-            pred_id, product_id, datetime.now().date().isoformat(), pred_type, horizon_days,
-            predicted_value, predicted_low, predicted_high, basis, model_version,
-            datetime.now().isoformat(),
-        ),
-    )
-    conn.commit()
+    try:
+        cur.execute(
+            """INSERT INTO predictions
+            (id, product_id, prediction_date, prediction_type, horizon_days,
+             predicted_value, predicted_low, predicted_high, prediction_basis, model_version, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                pred_id, product_id, datetime.now().date().isoformat(), pred_type, horizon_days,
+                predicted_value, predicted_low, predicted_high, basis, model_version,
+                datetime.now().isoformat(),
+            ),
+        )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        raise e
     conn.close()
 
     # Emit event to Event Backbone
@@ -127,28 +135,35 @@ def record_actual(
     product_id, pred_type, horizon_days, pred_val, pred_low, pred_high = row
     error_rate, direction, verdict = calculate_prediction_error(pred_val or 0, actual_value)
 
-    actual_id = f"actual_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-    cur.execute(
-        """INSERT INTO actuals
-        (id, prediction_id, actual_date, actual_value, data_source, notes, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        (
-            actual_id, prediction_id, datetime.now().date().isoformat(), actual_value,
-            data_source, notes, datetime.now().isoformat(),
-        ),
-    )
+    uid = uuid.uuid4().hex[:6]
+    ts = datetime.now().strftime('%Y%m%d%H%M%S')
+    actual_id = f"actual_{ts}_{uid}"
+    try:
+        cur.execute(
+            """INSERT INTO actuals
+            (id, prediction_id, actual_date, actual_value, data_source, notes, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                actual_id, prediction_id, datetime.now().date().isoformat(), actual_value,
+                data_source, notes, datetime.now().isoformat(),
+            ),
+        )
 
-    error_id = f"err_{error_rate:.1f}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-    error_category = "model_bias" if abs(error_rate) < 20 else "systematic_error" if abs(error_rate) < 40 else "anomaly"
-    model_bias = "high" if error_rate > 15 else "low" if error_rate < 5 else "medium"
+        error_id = f"err_{ts}_{uid}"
+        error_category = "model_bias" if abs(error_rate) < 20 else "systematic_error" if abs(error_rate) < 40 else "anomaly"
+        model_bias = "high" if error_rate > 15 else "low" if error_rate < 5 else "medium"
 
-    cur.execute(
-        """INSERT INTO prediction_errors
-        (id, prediction_id, actual_id, error_rate, error_direction, error_category, model_bias, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        (error_id, prediction_id, actual_id, error_rate, direction, error_category, model_bias, datetime.now().isoformat()),
-    )
-    conn.commit()
+        cur.execute(
+            """INSERT INTO prediction_errors
+            (id, prediction_id, actual_id, error_rate, error_direction, error_category, model_bias, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (error_id, prediction_id, actual_id, error_rate, direction, error_category, model_bias, datetime.now().isoformat()),
+        )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        raise e
     conn.close()
 
     # Emit events to Event Backbone
