@@ -1,5 +1,5 @@
 """SSH to VPS and search 1688"""
-import paramiko, urllib.parse, time
+import paramiko, urllib.parse
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -21,19 +21,23 @@ products = [
     ("蓝牙睡眠耳机", "蓝牙睡眠耳机 头戴式 音乐"),
 ]
 
+# Build Python script to run on remote VPS for parsing 1688 HTML
+PARSE_SCRIPT = (
+    'import sys,re;'
+    'html=sys.stdin.read();'
+    'links=re.findall(r"href=\\\\\"/offer/(\\\\d+)\\\\.html\\\\\"",html);'
+    'titles=re.findall(r"title=\\\\\"([^\\\\\"]+)\\\\\"",html);'
+    'for i in range(min(3,len(links))):'
+    ' print(f"  ¥ {titles[i].split()[-1] if titles else chr(63)} | detail.1688.com/offer/{links[i]}.html")'
+)
+
 for name, kw in products:
     encoded = urllib.parse.quote(kw)
     cmd = (
         f'curl -s --max-time 15 '
         f'"https://r.jina.ai/https://s.1688.com/selloffer/offer_search.htm?keywords={encoded}" '
         f'-H "Authorization: Bearer *** '
-        f'2>&1 | python3 -c "'
-        f'import sys,re; '
-        f'html=sys.stdin.read(); '
-        f'links=re.findall(r\\\"href=\\\\\\\"/offer/(\\\\d+)\\\\\\\\.html\\\\\\\"\\\",html); '
-        f'titles=re.findall(r\\\"title=\\\\\\\"([^\\\\\\\"]+)\\\\\\\"\\\",html); '
-        f'for i in range(min(3,len(links))): print(f\\\\\\\"  ¥ \\\\\\\${titles[i].split()[-1] if titles else \'?\'} | detail.1688.com/offer/\\\\\${links[i]}\\\\\\\\.html\\\\\\\") '
-        f'"'
+        f'2>&1 | python3 -c "{PARSE_SCRIPT}"'
     )
     stdin, stdout, stderr = client.exec_command(cmd, timeout=30)
     result = stdout.read().decode('utf-8', errors='replace')

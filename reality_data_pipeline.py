@@ -257,16 +257,16 @@ def main():
 
     # ── Step 3: 注入 World Model ──────────────────────────────
     print("\n[Step 3] 注入 World Model...")
-    wm = WorldModel(kg_db=f"{BASE}/knowledge-graph/kg.db",
-                    wm_db=f"{BASE}/knowledge-graph/wm.db")
+    wm = WorldModel(kg_db=f"{BASE}/knowledge_graph/kg.db",
+                    wm_db=f"{BASE}/knowledge_graph/wm.db")
     seeded = seed_world_model_with_reality(wm, reality_priors)
     print(f"  注入完成: {seeded} 个品类先验更新")
 
     # ── Step 4: 初始化其他 V10 模块 ──────────────────────────
     print("\n[Step 4] 初始化 V10 认知模块...")
-    atl = AdaptiveThresholdLearner(db_path=f"{BASE}/knowledge-graph/kg.db")
-    gov = PolicyGovernor(db_path=f"{BASE}/knowledge-graph/kg.db")
-    causal = CausalIntelligenceEngine(kg_db=f"{BASE}/knowledge-graph/kg.db")
+    atl = AdaptiveThresholdLearner(db_path=f"{BASE}/knowledge_graph/kg.db")
+    gov = PolicyGovernor(db_path=f"{BASE}/knowledge_graph/kg.db")
+    causal = CausalIntelligenceEngine(kg_db=f"{BASE}/knowledge_graph/kg.db")
     print("  WorldModel + AdaptiveThresholdLearner + PolicyGovernor + CausalIntelligence ✓")
 
     # ── Step 5: 对20品类重新评分 ─────────────────────────────

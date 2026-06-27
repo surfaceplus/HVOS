@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import sqlite3
 import logging
 from datetime import datetime, timezone
@@ -26,10 +27,10 @@ logger = logging.getLogger("world_model")
 # Paths
 # ──────────────────────────────────────────────────────────────
 
-HVOS_ROOT = r"C:\Users\Administrator\AppData\Local\hermes\hvos"
-KG_DB = rf"{HVOS_ROOT}\knowledge-graph\kg.db"
-STRATEGY_DB = rf"{HVOS_ROOT}\knowledge-graph\strategy_memory.db"
-WM_DB = rf"{HVOS_ROOT}\knowledge-graph\world_model.db"
+HVOS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+KG_DB = os.path.join(HVOS_ROOT, "knowledge_graph", "kg.db")
+STRATEGY_DB = os.path.join(HVOS_ROOT, "knowledge_graph", "strategy_memory.db")
+WM_DB = os.path.join(HVOS_ROOT, "knowledge_graph", "world_model.db")
 
 # ──────────────────────────────────────────────────────────────
 # Prediction Contract
@@ -341,23 +342,23 @@ class FeatureStore:
         conn = self._conn()
         cur = conn.cursor()
 
-        # Category-level stats
+        # 使用 JSON_EXTRACT 精确匹配 category 和 market
         cur.execute("""
             SELECT COUNT(*) as n_opps
             FROM kg_nodes
             WHERE entity_type = 'Opportunity'
-              AND properties LIKE ?
-        """, (f"%{category}%",))
+              AND JSON_EXTRACT(properties, '$.category') = ?
+        """, (category,))
         n_opps = cur.fetchone()["n_opps"]
-        n_opps_norm = min(1.0, n_opps / 50.0)  # normalize: 50+ = saturated
+        n_opps_norm = min(1.0, n_opps / 50.0)
 
         # Market-level stats
         cur.execute("""
             SELECT COUNT(*) as n_opps
             FROM kg_nodes
             WHERE entity_type = 'Opportunity'
-              AND properties LIKE ?
-        """, (f"%{market}%",))
+              AND JSON_EXTRACT(properties, '$.market') = ?
+        """, (market,))
         n_market_opps = cur.fetchone()["n_opps"]
         n_market_norm = min(1.0, n_market_opps / 100.0)
 

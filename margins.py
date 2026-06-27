@@ -27,7 +27,7 @@ def calc(name, price, signal):
         "platform_fee_usd": round(platform_fee, 2),
         "shipping_usd": shipping,
         "net_profit_usd": round(net, 2),
-        "margin_pct": str(round(margin_pct * 100, 1) + "%",
+        "margin_pct": str(round(margin_pct * 100, 1)) + "%",
         "roi_x": round(roi, 2),
         "agent_reach_signal": signal,
     }
@@ -39,10 +39,10 @@ results.sort(key=lambda x: x["net_profit_usd"], reverse=True)
 
 # 输出
 print("=== HVOS x Agent Reach 净利润排行 ===")
-print(f"{'产品':<15} {'售价':>7} {'成本':>7} {'平台费+运":>15} {'净利润US":>10}")
+print(f"{'产品':<15} {'售价':>7} {'成本':>7} {'平台费+运':>15} {'净利润USD':>10}")
 print("---" * 40)
 for r in results:
-    print(f"  {r['product']:<20} 成本{r['price']>5.2f}  成本率33%${r['cost']:>5.2f}")
+    print(f"  {r['product']:<20} ${r['price']:>5.2f}  成本33% = ${r['cost']:>5.2f}")
     print(f"  平台费${r['platform_fee_usd']:>5.2f}  运单:$8.00  净利${r['net_profit_usd']:>6.2f}  利润率: " + r["margin_pct"])
     print(f"  Agent Reach信号: {r['agent_reach_signal']}")
 

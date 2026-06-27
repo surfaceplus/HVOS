@@ -63,7 +63,7 @@ class AlertDispatcher:
             kg_db_path: KG 数据库路径
         """
         self.report_dir = report_dir or r"C:\Users\Administrator\AppData\Local\hermes\hvos\opportunity\reports"
-        self.kg_db_path = kg_db_path or r"C:\Users\Administrator\AppData\Local\hermes\hvos\knowledge-graph\kg.db"
+        self.kg_db_path = kg_db_path or r"C:\Users\Administrator\AppData\Local\hermes\hvos\knowledge_graph\kg.db"
         os.makedirs(self.report_dir, exist_ok=True)
 
     def dispatch(self, opportunity) -> dict:

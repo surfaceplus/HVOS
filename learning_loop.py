@@ -13,8 +13,8 @@ HVOS Learning Loop — 持续学习闭环模块
   7. EventBus 集成（订阅 reality.reality_hub.EventBus）
 
 数据库：
-  KG: knowledge-graph/kg.db
-  Capital: knowledge-graph/capital_book.db
+  KG: knowledge_graph/kg.db
+  Capital: knowledge_graph/capital_book.db
 
 CLI:
   python learning_loop.py --capture --opp_id TEST001 --roi 1.8 --cvr 0.035 --ctr 0.042 --aov 89 --refund 0.04 --success
@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import sqlite3
 import logging
 import argparse
@@ -44,10 +45,10 @@ logger = logging.getLogger(__name__)
 # 路径配置
 # ─────────────────────────────────────────────────────────────────────────────
 
-HVOS_ROOT = r"C:\Users\Administrator\AppData\Local\hermes\hvos"
-KG_DB = rf"{HVOS_ROOT}\knowledge-graph\kg.db"
-CAPITAL_DB = rf"{HVOS_ROOT}\knowledge-graph\capital_book.db"
-EVENTS_DB = rf"{HVOS_ROOT}\reality\events.db"
+HVOS_ROOT = os.path.dirname(os.path.abspath(__file__))
+KG_DB = os.path.join(HVOS_ROOT, "knowledge_graph", "kg.db")
+CAPITAL_DB = os.path.join(HVOS_ROOT, "knowledge_graph", "capital_book.db")
+EVENTS_DB = os.path.join(HVOS_ROOT, "reality", "events.db")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 数据模型
@@ -1112,7 +1113,7 @@ class ErrorAttributionEngine:
 
     def __init__(self, kg_db: str = KG_DB, strategy_db: str = None):
         self.kg_db = kg_db
-        self.strategy_db = strategy_db or rf"{HVOS_ROOT}\knowledge-graph\strategy_memory.db"
+        self.strategy_db = strategy_db or rf"{HVOS_ROOT}\knowledge_graph\strategy_memory.db"
 
     def _kg(self):
         return _kg_conn()

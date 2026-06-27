@@ -1,0 +1,59 @@
+{
+  "products": [
+    {
+      "product": "3合1充电站",
+      "price": 36.0,
+      "cost": 11.88,
+      "platform_fee_usd": 1.34,
+      "shipping_usd": 8.0,
+      "net_profit_usd": 14.78,
+      "margin_pct": "41.0%",
+      "roi_x": 2.03,
+      "agent_reach_signal": "科技礼品话题(弱"
+    },
+    {
+      "product": "瑜伽紧身裤",
+      "price": 32.0,
+      "cost": 10.56,
+      "platform_fee_usd": 1.23,
+      "shipping_usd": 8.0,
+      "net_profit_usd": 12.21,
+      "margin_pct": "38.2%",
+      "roi_x": 2.03,
+      "agent_reach_signal": "健身运动话题(中等信号"
+    },
+    {
+      "product": "智能恒温瓶",
+      "price": 26.0,
+      "cost": 8.58,
+      "platform_fee_usd": 1.05,
+      "shipping_usd": 8.0,
+      "net_profit_usd": 8.37,
+      "margin_pct": "32.2%",
+      "roi_x": 2.03,
+      "agent_reach_signal": "户外装备话题(弱"
+    },
+    {
+      "product": "智能猫砂盆",
+      "price": 25.99,
+      "cost": 8.58,
+      "platform_fee_usd": 1.05,
+      "shipping_usd": 8.0,
+      "net_profit_usd": 8.36,
+      "margin_pct": "32.2%",
+      "roi_x": 2.03,
+      "agent_reach_signal": "宠物降温话题(强信号"
+    },
+    {
+      "product": "超声波清洗机",
+      "price": 20.0,
+      "cost": 6.6,
+      "platform_fee_usd": 0.88,
+      "shipping_usd": 8.0,
+      "net_profit_usd": 4.52,
+      "margin_pct": "22.6%",
+      "roi_x": 2.03,
+      "agent_reach_signal": "个护科技话题(弱"
+    }
+  ]
+}

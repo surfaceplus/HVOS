@@ -353,12 +353,12 @@ def main():
     # ── Step 4: World Model ──────────────────────────────────
     print("\n[Step 4] 初始化 V10 模块并注入真实数据...")
     wm = WorldModel(
-        kg_db=f"{BASE}/knowledge-graph/kg.db",
-        wm_db=f"{BASE}/knowledge-graph/wm.db"
+        kg_db=f"{BASE}/knowledge_graph/kg.db",
+        wm_db=f"{BASE}/knowledge_graph/wm.db"
     )
-    atl = AdaptiveThresholdLearner(db_path=f"{BASE}/knowledge-graph/kg.db")
-    gov = PolicyGovernor(db_path=f"{BASE}/knowledge-graph/kg.db")
-    causal = CausalIntelligenceEngine(kg_db=f"{BASE}/knowledge-graph/kg.db")
+    atl = AdaptiveThresholdLearner(db_path=f"{BASE}/knowledge_graph/kg.db")
+    gov = PolicyGovernor(db_path=f"{BASE}/knowledge_graph/kg.db")
+    causal = CausalIntelligenceEngine(kg_db=f"{BASE}/knowledge_graph/kg.db")
     print("  ✓ WorldModel + ATL + PolicyGovernor + CausalEngine")
 
     seed_world_model(wm, cat_metrics)

@@ -10,6 +10,9 @@ import json
 import random
 from math import sqrt
 
+# Seeded RNG for reproducible Monte Carlo
+_SEEDED_RNG = random.Random(42)
+
 ORGANIC_TRAFFIC_COEFFICIENT = 0.8
 CVR_COLD_START = 0.012
 CVR_MATURE = 0.025
@@ -35,8 +38,9 @@ BRAND_COLORS = {
 
 
 def generate_virtual_brand(category, product_name, target_price):
+    rng = _SEEDED_RNG
     cat_key = category if category in BRAND_NAMES else "礼品套装"
-    brand_name = random.choice(BRAND_NAMES[cat_key])
+    brand_name = rng.choice(BRAND_NAMES[cat_key])
     colors = BRAND_COLORS[cat_key]
     return {
         "brand_name": brand_name,
@@ -50,6 +54,7 @@ def generate_virtual_brand(category, product_name, target_price):
 
 
 def simulate_growth(target_price, fob_cost, weight_lb, ad_daily=30.0, horizon_days=90):
+    rng = _SEEDED_RNG
     phases = [
         ("Day 30", 30, ORGANIC_TRAFFIC_COEFFICIENT * 0.5, CVR_COLD_START, ACOS_COLD_START),
         ("Day 60", 60, ORGANIC_TRAFFIC_COEFFICIENT * 0.75, CVR_COLD_START * 1.3, ACOS_COLD_START * 0.85),
@@ -61,7 +66,7 @@ def simulate_growth(target_price, fob_cost, weight_lb, ad_daily=30.0, horizon_da
     cum_units = 0
 
     for phase_name, days, org_coeff, cvr, acos in phases:
-        organic = 30 * org_coeff * random.uniform(0.85, 1.15)
+        organic = 30 * org_coeff * rng.uniform(0.85, 1.15)
         paid_budget = ad_daily * days / 30
         paid_clicks = paid_budget * 0.02
         paid_conv = paid_clicks * cvr
@@ -131,11 +136,12 @@ def simulate_financial(target_price, fob_cost, weight_lb, ad_monthly=800,
 
 def monte_carlo(target_price, fob_cost, weight_lb, n=1000):
     roi_samples = []
+    rng = _SEEDED_RNG  # use seeded RNG for reproducibility
     for _ in range(n):
-        org_v = random.gauss(1.0, 0.25)
-        cvr_v = random.gauss(1.0, 0.20)
-        acos_v = random.gauss(1.0, 0.30)
-        ret_v = random.gauss(1.0, 0.40)
+        org_v = rng.gauss(1.0, 0.25)
+        cvr_v = rng.gauss(1.0, 0.20)
+        acos_v = rng.gauss(1.0, 0.30)
+        ret_v = rng.gauss(1.0, 0.40)
         units = int(300 * org_v * cvr_v)
         revenue = units * target_price
         ad_cost = revenue * (0.38 * acos_v)

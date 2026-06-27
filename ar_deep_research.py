@@ -84,7 +84,7 @@ def main():
         if r["bilibili"]:
             print(f"  B站: {r['bilibili'][0][:80]}")
 
-    path = r"C:\Users\Administrator\AppData\Local\hermes\hvos\ar_deep_signals.json"
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ar_deep_signals.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump({"topics": topics_results}, f, ensure_ascii=False, indent=2)
     print(f"\n深度报告: {path}")

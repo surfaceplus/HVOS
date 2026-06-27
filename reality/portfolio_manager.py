@@ -127,7 +127,7 @@ class PortfolioManager:
     订阅 EventBus，消费事件，维护 Portfolio 状态
     """
 
-    def __init__(self, event_bus: EventBus, kg_path: str = "knowledge-graph/kg.db"):
+    def __init__(self, event_bus: EventBus, kg_path: str = "knowledge_graph/kg.db"):
         self.event_bus = event_bus
         self.kg_path = kg_path
 
@@ -400,7 +400,7 @@ class RealityBridge:
         self.hub = RealityHub(config=self.config)
 
         # 初始化 Portfolio Manager — 使用绝对路径
-        kg_db = _HVOS_ROOT / "knowledge-graph" / "kg.db"
+        kg_db = _HVOS_ROOT / "knowledge_graph" / "kg.db"
         self.portfolio_manager = PortfolioManager(
             event_bus=self.hub.event_bus,
             kg_path=str(kg_db),

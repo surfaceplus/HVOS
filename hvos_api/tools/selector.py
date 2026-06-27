@@ -12,7 +12,7 @@ import threading
 from typing import List, Dict, Any, Optional
 
 # Add HVOS paths
-HVOS_ROOT = r"C:\Users\Administrator\AppData\Local\hermes\hvos"
+HVOS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OPP_DIR = os.path.join(HVOS_ROOT, "opportunity")
 for _p in [OPP_DIR, HVOS_ROOT]:
     if _p not in sys.path:

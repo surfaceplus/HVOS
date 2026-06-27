@@ -16,8 +16,8 @@ import json
 import os
 from datetime import datetime
 
-KG_DB = r"C:\Users\Administrator\AppData\Local\hermes\hvos\knowledge-graph\kg.db"
-HVOS_DIR = r"C:\Users\Administrator\AppData\Local\hermes\hvos"
+import os; KG_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'knowledge_graph', 'kg.db')
+HVOS_DIR = os.path.dirname(os.path.abspath(__file__))
 SKILLS_DIR = r"C:\Users\Administrator\AppData\Local\hermes\skills\hvos"
 
 def get_conn():
@@ -162,7 +162,7 @@ def hvos_status():
     # ============================================================
     section("Product DNA — 产品基因库")
 
-    cur.execute("SELECT id, properties FROM kg_nodes WHERE entity_type='Product'")
+    cur.execute("SELECT node_id, properties FROM kg_nodes WHERE entity_type='Product'")
     products_with_dna = 0
     for row in cur.fetchall():
         props = json.loads(row[1]) if row[1] else {}

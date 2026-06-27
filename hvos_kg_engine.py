@@ -12,6 +12,7 @@ HVOS 核心引擎 — 商业知识图谱 CRUD API
 
 import sqlite3
 import json
+import os
 import uuid
 import sys
 from datetime import datetime
@@ -20,7 +21,8 @@ from math import sqrt
 # ============================================================
 # 配置
 # ============================================================
-KG_DB = r"C:\Users\Administrator\AppData\Local\hermes\hvos\knowledge-graph\kg.db"
+HVOS_ROOT = os.path.dirname(os.path.abspath(__file__))
+KG_DB = os.path.join(HVOS_ROOT, "knowledge_graph", "kg.db")
 
 # ============================================================
 # 数据库连接
@@ -62,8 +64,8 @@ def kg_update_product(name, category, price_tier=3, dna=None, status="watchlist"
     if extra_props:
         props.update(extra_props)
 
-    # 检查是否已存在同名产品
-    cur.execute("SELECT id FROM nodes WHERE type='Product' AND properties LIKE ?", (f'%"{name}"%',))
+    # 检查是否已存在同名产品 — 用 JSON_EXTRACT 精确匹配
+    cur.execute("SELECT id FROM nodes WHERE type='Product' AND JSON_EXTRACT(properties, '$.name') = ?", (name,))
     existing = cur.fetchone()
     if existing:
         node_id = existing[0]

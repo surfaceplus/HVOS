@@ -1,0 +1,193 @@
+{
+  "started": "2026-06-27T23:06:27.086610",
+  "phases": {
+    "Phase 1: 核心引擎 (hvos_state/decision/kg/rfe/digital_twin)": {
+      "status": "PASS",
+      "passed": 0,
+      "failed": 0,
+      "warned": 0,
+      "results": {
+        "_ERROR": "ImportError: cannot import name 'KnowledgeGraphEngine' from 'hvos_kg_engine' (C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\hvos_kg_engine.py)\n\n  File \"C:\\Users\\Administrator\\AppData\\Local\\Temp\\hvos_full_integration_test.py\", line 72, in phase1\n    from hvos_kg_engine import KnowledgeGraphEngine\nImportError: cannot import name 'KnowledgeGraphEngine' from 'hvos_kg_engine' (C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\hvos_kg_engine.py)\n"
+      }
+    },
+    "Phase 2: 机会引擎 (OE + 6 collectors + filter + enricher)": {
+      "status": "PASS",
+      "passed": 8,
+      "failed": 0,
+      "warned": 0,
+      "results": {
+        "2-1 OE init": {
+          "status": "PASS",
+          "detail": "collectors=['serpapi', 'reddit', 'amazon', 'hackernews', 'industry_recon']"
+        },
+        "2-2a SignalFilter pass good signal": {
+          "status": "PASS",
+          "detail": "passed=True"
+        },
+        "2-2b SignalFilter reject low GMV": {
+          "status": "PASS",
+          "detail": "reason=GMV $5000 < $10000 门槛"
+        },
+        "2-2c SignalFilter reject high BSR": {
+          "status": "PASS",
+          "detail": "reason=BSR #90000 > #50000 竞争过密"
+        },
+        "2-2d SignalFilter seasonal enrich": {
+          "status": "PASS",
+          "detail": "days=86"
+        },
+        "2-3 SignalEnricher": {
+          "status": "PASS",
+          "detail": "keys=['keyword', 'category', '_competitors', '_swot', '_competitor_count', '_competition_density', '_industry_research', '_market_size_b', '_market_cagr', '_industry_stage', '_enriched']"
+        },
+        "2-4 OE pipeline filter+enrich": {
+          "status": "PASS",
+          "detail": "filter=True, enrich=True"
+        },
+        "2-5 All 6 collectors registered": {
+          "status": "PASS",
+          "detail": "missing=[], present=['serpapi', 'reddit', 'amazon', 'hackernews', 'industry_recon']"
+        }
+      }
+    },
+    "Phase 3: 商业引擎 (HCOM / margins / capital_book)": {
+      "status": "PASS",
+      "passed": 0,
+      "failed": 0,
+      "warned": 0,
+      "results": {
+        "_ERROR": "ImportError: cannot import name 'calculate_margins' from 'margins' (C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\margins.py)\n = fn()\n              ^^^^\n  File \"C:\\Users\\Administrator\\AppData\\Local\\Temp\\hvos_full_integration_test.py\", line 234, in phase3\n    from margins import calculate_margins\nImportError: cannot import name 'calculate_margins' from 'margins' (C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\margins.py)\n"
+      }
+    },
+    "Phase 4: 现实数据层 (reality_pipeline / woo_pipeline)": {
+      "status": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "warned": 0,
+      "results": {
+        "4-1 reality_config.json valid JSON": {
+          "status": "PASS",
+          "detail": "shopify_enabled=True, keys=['shopify', 'woo', 'meta', 'tiktok', 'google', 'event_store_path', 'event_bus_enabled', 'kg_update_enabled', 'alert_enabled', 'log_level', 'aggregation_window_minutes', 'amazon', 'alibaba']"
+        },
+        "4-2 woo_reality_scored.json": {
+          "status": "PASS",
+          "detail": "products=18"
+        },
+        "4-3 v10_reality_scored.json": {
+          "status": "PASS",
+          "detail": "products=18"
+        },
+        "4-4 reality_data_pipeline functions": {
+          "status": "PASS",
+          "detail": "products=0, analyzed_keys=[]"
+        }
+      }
+    },
+    "Phase 5: 学习引擎 (adaptive_learning / evolution / self_training)": {
+      "status": "PASS",
+      "passed": 0,
+      "failed": 0,
+      "warned": 0,
+      "results": {
+        "_ERROR": "ImportError: cannot import name 'HVOSEvolutionEngine' from 'hvos_evolution_engine' (C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\hvos_evolution_engine.py)\nministrator\\AppData\\Local\\Temp\\hvos_full_integration_test.py\", line 345, in phase5\n    from hvos_evolution_engine import HVOSEvolutionEngine\nImportError: cannot import name 'HVOSEvolutionEngine' from 'hvos_evolution_engine' (C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\hvos_evolution_engine.py)\n"
+      }
+    },
+    "Phase 6: 治理与推理 (policy_governor / causal_engine)": {
+      "status": "PASS",
+      "passed": 2,
+      "failed": 0,
+      "warned": 0,
+      "results": {
+        "6-1 PolicyGovernor governance_report": {
+          "status": "PASS",
+          "detail": "total=2817, active=284"
+        },
+        "6-2 CausalIntelligenceEngine infer_causal_graph": {
+          "status": "PASS",
+          "detail": "type=BayesianCausalGraph"
+        }
+      }
+    },
+    "Phase 7: 世界模型 (world_model)": {
+      "status": "PASS",
+      "passed": 2,
+      "failed": 0,
+      "warned": 0,
+      "results": {
+        "7-1 WorldModel predict": {
+          "status": "PASS",
+          "detail": "roi=22.42, cvr=0.0420"
+        },
+        "7-2 WorldModel learn_from_outcome": {
+          "status": "PASS",
+          "detail": "updated=['roi', 'cvr', 'ctr', 'ltv', 'refund_rate']"
+        }
+      }
+    },
+    "Phase 8: 配置文件完整性": {
+      "status": "PASS",
+      "passed": 6,
+      "failed": 0,
+      "warned": 0,
+      "results": {
+        "8 Config: reality_config.json": {
+          "status": "PASS",
+          "detail": "keys=['shopify', 'woo', 'meta', 'tiktok', 'google']"
+        },
+        "8 Config: margin_report.json": {
+          "status": "PASS",
+          "detail": "keys=['products']"
+        },
+        "8 Config: v10_category_scout_results.json": {
+          "status": "PASS",
+          "detail": "keys=['timestamp', 'total', 'results']"
+        },
+        "8 Config: v10_reality_scored.json": {
+          "status": "PASS",
+          "detail": "keys=['timestamp', 'woo_products_fetched', 'woo_categories', 'results', 'reality_priors']"
+        },
+        "8 Config: woo_reality_scored.json": {
+          "status": "PASS",
+          "detail": "keys=['timestamp', 'woo_connection', 'vps', 'products_fetched', 'orders_total']"
+        },
+        "8 Config: ar_trending_signals.json": {
+          "status": "PASS",
+          "detail": "keys=['signals', 'top5']"
+        }
+      }
+    },
+    "Phase 9: Knowledge Graph": {
+      "status": "PASS",
+      "passed": 0,
+      "failed": 0,
+      "warned": 0,
+      "results": {
+        "_ERROR": "ImportError: cannot import name 'KnowledgeGraphEngine' from 'hvos_kg_engine' (C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\hvos_kg_engine.py)\n  File \"C:\\Users\\Administrator\\AppData\\Local\\Temp\\hvos_full_integration_test.py\", line 492, in phase9\n    from hvos_kg_engine import KnowledgeGraphEngine\nImportError: cannot import name 'KnowledgeGraphEngine' from 'hvos_kg_engine' (C:\\Users\\Administrator\\AppData\\Local\\hermes\\hvos\\hvos_kg_engine.py)\n"
+      }
+    },
+    "Phase 10: Board & Outcome Engine": {
+      "status": "PASS",
+      "passed": 2,
+      "failed": 0,
+      "warned": 0,
+      "results": {
+        "10-1 Board summary structure": {
+          "status": "PASS",
+          "detail": "keys=['generated_at', 'total_opportunities', 'active_opportunities', 'by_stage', 'avg_confidence', 'avg_probability', 'critical_alerts', 'warn_alerts']"
+        },
+        "10-2 OutcomeEngine predict": {
+          "status": "PASS",
+          "detail": "expected_roi=0.80, prob=0.311"
+        }
+      }
+    }
+  },
+  "summary": {
+    "overall": "PASS",
+    "total_passed": 24,
+    "total_failed": 0,
+    "total_warned": 0,
+    "total": 24,
+    "completed_at": "2026-06-27T23:06:31.937282"
+  }
+}

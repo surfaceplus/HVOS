@@ -26,14 +26,16 @@ Safety Rule：
 
 import sqlite3
 import json
+import os
 import uuid
 import random
 from datetime import datetime, date, timedelta
 from math import sqrt
 from pathlib import Path
 
-KG_DB = r"C:\Users\Administrator\AppData\Local\hermes\hvos\knowledge-graph\kg.db"
-EVOLUTION_DB = r"C:\Users\Administrator\AppData\Local\hermes\hvos\knowledge-graph\evolution.db"
+HVOS_ROOT = os.path.dirname(os.path.abspath(__file__))
+KG_DB = os.path.join(HVOS_ROOT, "knowledge_graph", "kg.db")
+EVOLUTION_DB = os.path.join(HVOS_ROOT, "knowledge_graph", "evolution.db")
 
 # ============================================================
 # 数据库初始化（独立的 evolution DB）

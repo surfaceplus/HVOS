@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-06-27T19:02:01.250819",
+  "woo_products": 13,
+  "woo_orders": 0,
+  "woo_revenue": 0.0,
+  "cold_start": true,
+  "top_scores": [
+    {
+      "category": "万圣节LED装饰",
+      "market": "US",
+      "roi": 2.9,
+      "cvr": 5.43,
+      "confidence": 70.0,
+      "refund": 2.0,
+      "ltv": 45.0,
+      "recommendation": "INVEST",
+      "score": 0.72,
+      "roi_level": "high",
+      "cvr_level": "high"
+    },
+    {
+      "category": "America250圣诞装饰",
+      "market": "US",
+      "roi": 3.2,
+      "cvr": 5.5,
+      "confidence": 52.5,
+      "refund": 2.0,
+      "ltv": 45.0,
+      "recommendation": "INVEST",
+      "score": 0.718,
+      "roi_level": "high",
+      "cvr_level": "high"
+    },
+    {
+      "category": "圣诞投影灯",
+      "market": "UK",
+      "roi": 2.6,
+      "cvr": 5.0,
+      "confidence": 60.0,
+      "refund": 2.0,
+      "ltv": 45.0,
+      "recommendation": "INVEST",
+      "score": 0.654,
+      "roi_level": "high",
+      "cvr_level": "high"
+    },
+    {
+      "category": "VC精华液",
+      "market": "US",
+      "roi": 2.5,
+      "cvr": 4.46,
+      "confidence": 70.0,
+      "refund": 6.0,
+      "ltv": 45.0,
+      "recommendation": "INVEST",
+      "score": 0.617,
+      "roi_level": "high",
+      "cvr_level": "normal"
+    },
+    {
+      "category": "智能猫砂盆",
+      "market": "US",
+      "roi": 2.09,
+      "cvr": 4.2,
+      "confidence": 70.0,
+      "refund": 3.14,
+      "ltv": 77.97,
+      "recommendation": "INVEST",
+      "score": 0.585,
+      "roi_level": "high",
+      "cvr_level": "normal"
+    }
+  ],
+  "rfe_awaiting": 0,
+  "signals": [
+    {
+      "title": "America250圣诞装饰趋势 2026-06-27",
+      "source": "CategoryIntersection",
+      "score": 85,
+      "category": "Seasonal"
+    },
+    {
+      "title": "BTS礼品套装热度 2026-06-27",
+      "source": "AmazonPrimeDay",
+      "score": 87,
+      "category": "Gifts"
+    }
+  ]
+}

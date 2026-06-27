@@ -123,7 +123,7 @@ python hvos_rfe_engine.py --action model_review
 | 文件 | 路径 |
 |------|------|
 | HVOS 主目录 | `C:\Users\Administrator\AppData\Local\hermes\hvos\` |
-| 知识图谱数据库 | `hvos\knowledge-graph\kg.db` |
+| 知识图谱数据库 | `hvos\knowledge_graph\kg.db` |
 | Board Meeting 记录 | `hvos\board-meetings\` |
 | 状态面板脚本 | `hvos\hvos_status.py` |
 | 知识图谱引擎 | `hvos\hvos_kg_engine.py` |

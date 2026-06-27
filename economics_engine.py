@@ -58,15 +58,18 @@ class EconomicsInput:
     tax_rate: float = 0.0
 
 
-@dataclass
+@dataclass(kw_only=True)
 class EconomicsForecast:
     """经济模型输出（完整分解）"""
-    # 收入（必填字段放前面）
+    # 收入
     revenue: float
     revenue_low: float
     revenue_high: float
+    revenue_pct_of_predicted: float = 100.0   # 实际/预测
+
+    # 成本分解
     cogs: float
-    cogs_pct: float
+    cogs_pct: float                        # 占收入比
     advertising_cost: float
     advertising_cost_pct: float
     shipping_cost: float
@@ -76,25 +79,35 @@ class EconomicsForecast:
     platform_fee: float
     platform_fee_pct: float
     other_cost: float
-    total_cost: float
-    gross_profit: float
-    gross_margin: float
-    gross_margin_pct: float
-    net_profit: float
-    net_margin: float
-    investment_amount: float
-    roi: float
-    roi_pct: float
-    payback_days: float
-    gross_profit_first: float
-    net_profit_first: float
-    cumulative_cashflow: float
+    total_cost: float                      # COGS + 运营成本 + 手续费 + 平台费
 
-    # 有默认值的字段放后面
-    revenue_pct_of_predicted: float = 100.0
+    # 利润分层
+    gross_profit: float                    # 毛利 = Revenue - COGS
+    gross_margin: float                     # 毛利率 = GrossProfit / Revenue
+    gross_margin_pct: float               # 毛利率百分比
+
+    net_profit: float                     # 净利 = GrossProfit - 运营成本 - 税费
+    net_margin: float                      # 净利率 = NetProfit / Revenue
+
+    # ROI 核心
+    investment_amount: float               # 投入金额
+    roi: float                            # ROI = NetProfit / Investment
+    roi_pct: float                       # ROI百分比
+
+    # Payback
+    payback_days: float                   # 回本天数
+
+    # Cashflow
+    gross_profit_first: float             # 首期毛利（用于现金流）
+    net_profit_first: float               # 首期净利
+    cumulative_cashflow: float             # 累计现金流
+
+    # 对比误差
     revenue_error_pct: float = 0.0
     roi_error_pct: float = 0.0
     roi_error_direction: str = ""
+
+    # 模型元数据
     horizon_days: int = 90
     currency: str = "USD"
     model_version: str = "v1.0"

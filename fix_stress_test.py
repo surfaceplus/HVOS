@@ -1,6 +1,6 @@
 import re
 
-path = r'C:\Users\Administrator\AppData\Local\hermes\hvos\hvos_v7\v7_stress_test.py'
+import os; path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hvos_v7', 'v7_stress_test.py')
 with open(path, 'rb') as f:
     content = f.read()
 

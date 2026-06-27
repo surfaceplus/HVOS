@@ -7,7 +7,7 @@ KG Integration — Knowledge Graph 集成模块
 3. 查询 KG 中已知品牌/供应商，避免重复发现
 4. 写入后触发 Pattern Mining
 
-复用：knowledge-graph/kg_event_consumer.py 的 consume_event() 接口
+复用：knowledge_graph/kg_event_consumer.py 的 consume_event() 接口
 """
 
 import sys
@@ -16,7 +16,7 @@ from datetime import datetime
 from typing import Optional, List, Dict
 
 HVOS_ROOT = r"C:\Users\Administrator\AppData\Local\hermes\hvos"
-KG_DIR = os.path.join(HVOS_ROOT, "knowledge-graph")
+KG_DIR = os.path.join(HVOS_ROOT, "knowledge_graph")
 
 sys.path.insert(0, KG_DIR)
 

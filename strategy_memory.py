@@ -22,6 +22,7 @@ HVOS V8.1 — Strategy Memory
 
 import sys
 import json
+import os
 import sqlite3
 import uuid
 from datetime import datetime, date
@@ -64,7 +65,8 @@ class StrategyMemory:
 
     def __init__(self, db_path: str = None):
         if db_path is None:
-            db_path = r"C:\Users\Administrator\AppData\Local\hermes\hvos\knowledge-graph\strategy_memory.db"
+            _hvos_root = os.path.dirname(os.path.abspath(__file__))
+            db_path = os.path.join(_hvos_root, "knowledge_graph", "strategy_memory.db")
         self.db_path = db_path
         self._init_schema()
 
@@ -610,7 +612,7 @@ if __name__ == "__main__":
     parser.add_argument("--db", help="数据库路径")
 
     args = parser.parse_args()
-    db = args.db or r"C:\Users\Administrator\AppData\Local\hermes\hvos\knowledge-graph\kg.db"
+    db = args.db or os.path.join(os.path.dirname(os.path.abspath(__file__)), "knowledge_graph", "kg.db")
     sm = StrategyMemory(db)
 
     if args.action == "record":

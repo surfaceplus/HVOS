@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import random
 import sqlite3
 import logging
@@ -32,9 +33,9 @@ logger = logging.getLogger("causal_intelligence")
 # Paths
 # ──────────────────────────────────────────────────────────────
 
-HVOS_ROOT = r"C:\Users\Administrator\AppData\Local\hermes\hvos"
-KG_DB = rf"{HVOS_ROOT}\knowledge-graph\kg.db"
-ES_DB = rf"{HVOS_ROOT}\reality\events.db"
+HVOS_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+KG_DB = os.path.join(HVOS_ROOT, "knowledge_graph", "kg.db")
+ES_DB = os.path.join(HVOS_ROOT, "reality", "events.db")
 
 
 # ──────────────────────────────────────────────────────────────

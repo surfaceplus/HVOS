@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import random
 import sqlite3
 import sys
@@ -35,8 +36,8 @@ from typing import List, Optional, Tuple
 # Paths
 # ─────────────────────────────────────────────────────────────────────────────
 
-HVOS_ROOT = r"C:\Users\Administrator\AppData\Local\hermes\hvos"
-KG_DB = f"{HVOS_ROOT}\\knowledge-graph\\kg.db"
+HVOS_ROOT = os.path.dirname(os.path.abspath(__file__))
+KG_DB = os.path.join(HVOS_ROOT, "knowledge_graph", "kg.db")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Logging

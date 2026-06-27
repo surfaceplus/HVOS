@@ -44,12 +44,18 @@ from dataclasses import dataclass, field
 # ──────────────────────────────────────────────────────────────
 HVOS_ROOT = r"C:\Users\Administrator\AppData\Local\hermes\hvos"
 OPP_DIR = os.path.join(HVOS_ROOT, "opportunity")
-KG_DIR = os.path.join(HVOS_ROOT, "knowledge-graph")
+KG_DIR = os.path.join(HVOS_ROOT, "knowledge_graph")
+DATA_DIR = os.path.join(HVOS_ROOT, "data")
 
 # 添加到 Python path
 for _p in [OPP_DIR, KG_DIR, HVOS_ROOT]:
     if _p not in sys.path:
         sys.path.insert(0, _p)
+
+# 新增模块
+from signal_collectors.industry_recon_scanner import IndustryReconScanner
+from signal_filter import SignalFilter
+from signal_enricher import SignalEnricher
 
 
 # ──────────────────────────────────────────────────────────────
@@ -232,6 +238,13 @@ class OpportunityEngine:
         except ImportError as e:
             print(f"[OpportunityEngine] HackerNewsCollector not available: {e}")
 
+        # 6. 行业侦察·天眼（消费品/硬科技/服务三路由产业链分析）
+        try:
+            self.collectors["industry_recon"] = IndustryReconScanner()
+            print("[OpportunityEngine] IndustryReconScanner initialized")
+        except Exception as e:
+            print(f"[OpportunityEngine] IndustryReconScanner not available: {e}")
+
     def _check_network_health(self) -> bool:
         """快速检测网络连通性"""
         import socket
@@ -262,7 +275,6 @@ class OpportunityEngine:
         self.scorer = AlphaScorer(
             weights=self.config.get("scorer_weights")
         )
-
     def _init_ranker(self):
         """初始化 Ranker"""
         from opportunity_ranker import OpportunityRanker
@@ -303,12 +315,32 @@ class OpportunityEngine:
         signals = self._collect_all_signals()
         print(f"[OpportunityEngine] Collected {len(signals)} raw signals")
 
-        # Step 2: 信号汇聚（按产品/品类分组）
+        # Step 2: 信号过滤（AI数据驱动师 电商指标过滤）
+        print(f"[OpportunityEngine] Filtering signals (AI电商指标)...")
+        from signal_filter import SignalFilter
+        signal_filter = SignalFilter()
+        filtered_signals = signal_filter.apply(signals)
+        filter_stats = signal_filter.get_filter_stats()
+        print(f"[OpportunityEngine] Filter: {filter_stats['passed']}/{filter_stats['total']} passed "
+              f"({filter_stats['rejected']} rejected)")
+
+        # Step 2b: 补充季节性信息
+        filtered_signals = signal_filter.enrich_seasonal_info(filtered_signals)
+
+        # Step 3: 信号丰富（竞品分析 + 行业研究框架 并行）
+        print(f"[OpportunityEngine] Enriching signals (竞品分析 + 行业研究)...")
+        from signal_enricher import SignalEnricher
+        enricher = SignalEnricher()
+        enriched_signals = enricher.enrich(filtered_signals)
+        enriched_count = sum(1 for s in enriched_signals if s.get("_enriched"))
+        print(f"[OpportunityEngine] Enriched: {enriched_count}/{len(enriched_signals)} signals enriched")
+
+        # Step 4: 信号汇聚（按产品/品类分组）
         print(f"[OpportunityEngine] Aggregating signals...")
-        aggregated = self._aggregate_signals(signals)
+        aggregated = self._aggregate_signals(enriched_signals)
         print(f"[OpportunityEngine] Aggregated into {len(aggregated)} opportunity clusters")
 
-        # Step 3: Alpha Score 计算
+        # Step 5: Alpha Score 计算
         print(f"[OpportunityEngine] Calculating Alpha Scores...")
         scored = self._score_opportunities(aggregated)
         print(f"[OpportunityEngine] Scored {len(scored)} opportunities")
@@ -500,6 +532,15 @@ class OpportunityEngine:
                 errors.append(f"Amazon: {e}")
                 return []
 
+        def collect_industry_recon():
+            try:
+                if "industry_recon" in self.collectors:
+                    return self.collectors["industry_recon"].batch_scan() or []
+                return []
+            except Exception as e:
+                errors.append(f"IndustryRecon: {e}")
+                return []
+
         # 并行执行
         threads = []
         results = {}
@@ -509,7 +550,8 @@ class OpportunityEngine:
             ("google", collect_google),
             ("reddit", collect_reddit),
             ("hackernews", collect_hackernews),
-            ("amazon", collect_amazon)
+            ("amazon", collect_amazon),
+            ("industry_recon", collect_industry_recon)
         ]:
             t = threading.Thread(target=lambda n, f: results.update({n: f()}), args=(name, fn))
             t.start()

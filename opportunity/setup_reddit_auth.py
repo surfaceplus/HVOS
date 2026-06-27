@@ -164,7 +164,7 @@ if __name__ == "__main__":
         print("或:")
         print("  python setup_reddit_auth.py --client-id XXXXX")
         print("  (会生成授权 URL，让你在浏览器中授权)")
-        return
+        sys.exit(0)
 
     if not client_secret:
         # 只有 client_id，生成授权 URL
@@ -178,13 +178,13 @@ if __name__ == "__main__":
         code = input("粘贴 code: ").strip()
         if not code:
             print("code 不能为空")
-            return
+            sys.exit(1)
     else:
         code = args.code
 
     if not code:
         print("需要提供 --code 参数")
-        return
+        sys.exit(1)
 
     print("\n正在换取 access token...")
     try:

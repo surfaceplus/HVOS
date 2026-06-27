@@ -18,9 +18,10 @@ import json
 import uuid
 import random
 from datetime import datetime, timedelta
+import os
 from math import sqrt
 
-KG_DB = r"C:\Users\Administrator\AppData\Local\hermes\hvos\knowledge-graph\kg.db"
+KG_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "knowledge_graph", "kg.db")
 
 def get_conn():
     return sqlite3.connect(KG_DB)

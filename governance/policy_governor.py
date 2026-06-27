@@ -11,8 +11,9 @@
 from __future__ import annotations
 
 import json
-import sqlite3
 import logging
+import os
+import sqlite3
 from datetime import datetime
 from typing import Optional
 from collections import defaultdict
@@ -23,8 +24,8 @@ logger = logging.getLogger("policy_governor")
 # Paths
 # ──────────────────────────────────────────────────────────────
 
-HVOS_ROOT = r"C:\Users\Administrator\AppData\Local\hermes\hvos"
-STRATEGY_DB = rf"{HVOS_ROOT}\knowledge-graph\strategy_memory.db"
+HVOS_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STRATEGY_DB = os.path.join(HVOS_ROOT, "knowledge_graph", "strategy_memory.db")
 
 # ──────────────────────────────────────────────────────────────
 # Policy Lifecycle States

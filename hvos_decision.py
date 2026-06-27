@@ -303,7 +303,7 @@ class DecisionKernel:
 
         # 优先级
         priority_map = {Decision.STOP: 10, Decision.WAIT: 8, Decision.HOLD: 6,
-                        Decision.SCALE: 4, Decision.INVEST: 2, Decision.WAIT: 1}
+                                Decision.SCALE: 4, Decision.INVEST: 2}
         priority = priority_map.get(decision, 0)
 
         # 行动建议

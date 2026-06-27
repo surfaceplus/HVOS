@@ -12,7 +12,7 @@ import os
 from typing import Dict, Any, Optional
 
 # Add HVOS paths
-HVOS_ROOT = r"C:\Users\Administrator\AppData\Local\hermes\hvos"
+HVOS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 for _p in [HVOS_ROOT]:
     if _p not in sys.path:
         sys.path.insert(0, _p)

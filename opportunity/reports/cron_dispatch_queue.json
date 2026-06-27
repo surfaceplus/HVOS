@@ -138,5 +138,65 @@
     "alpha_score": 39.6,
     "recommendation": "BUY",
     "queued_at": "2026-06-23T18:25:39.990436"
+  },
+  {
+    "opportunity_id": "opp_show_hn_openknowledge_open_sou_202606270601",
+    "opportunity_name": "Show Hn: Openknowledge – Open Source Ai-",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-27T06:01:14.591250"
+  },
+  {
+    "opportunity_id": "opp_microvms_run_isolated_sandboxe_202606270601",
+    "opportunity_name": "Microvms: Run Isolated Sandboxes With Fu",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-27T06:01:14.591250"
+  },
+  {
+    "opportunity_id": "opp_show_hn_openknowledge_–_open_source_ai_k_20260627_0603",
+    "opportunity_name": "Show HN: Openknowledge – Open Source AI Knowledge Base",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-27T06:03:42.724682",
+    "report_path": "C:/Users/Administrator/AppData/Local/hermes/hvos/opportunity/reports/opp_TOP5_20260627_0603.html"
+  },
+  {
+    "opportunity_id": "opp_microvms_run_isolated_sandboxes_with_ful_20260627_0603",
+    "opportunity_name": "MicroVMs: Run Isolated Sandboxes With Full Linux",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-27T06:03:42.724682",
+    "report_path": "C:/Users/Administrator/AppData/Local/hermes/hvos/opportunity/reports/opp_TOP5_20260627_0603.html"
+  },
+  {
+    "opportunity_id": "opp_show_hn_autofit2_–_end_to_end_tests_that_20260627_0603",
+    "opportunity_name": "Show HN: Autofit2 – End-To-End Tests That Write Themselves",
+    "alpha_score": 30.7,
+    "recommendation": "WATCH",
+    "queued_at": "2026-06-27T06:03:42.724682",
+    "report_path": "C:/Users/Administrator/AppData/Local/hermes/hvos/opportunity/reports/opp_TOP5_20260627_0603.html"
+  },
+  {
+    "opportunity_id": "opp_playstation_is_deleting_551_tv_shows_use_20260627_0603",
+    "opportunity_name": "PlayStation Is Deleting 551 TV Shows Users Paid For",
+    "alpha_score": 30.7,
+    "recommendation": "WATCH",
+    "queued_at": "2026-06-27T06:03:42.724682",
+    "report_path": "C:/Users/Administrator/AppData/Local/hermes/hvos/opportunity/reports/opp_TOP5_20260627_0603.html"
+  },
+  {
+    "opportunity_id": "opp_show_hn_openknowledge_open_sou_202606271901",
+    "opportunity_name": "Show Hn: Openknowledge – Open Source Ai-",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-27T19:01:11.836749"
+  },
+  {
+    "opportunity_id": "opp_microvms_run_isolated_sandboxe_202606271901",
+    "opportunity_name": "Microvms: Run Isolated Sandboxes With Fu",
+    "alpha_score": 39.6,
+    "recommendation": "BUY",
+    "queued_at": "2026-06-27T19:01:11.852537"
   }
 ]

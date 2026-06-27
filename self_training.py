@@ -20,6 +20,7 @@ HVOS V9.0 — 自我训练引擎
 """
 
 import sys
+import os
 import sqlite3
 import json
 import uuid
@@ -27,14 +28,14 @@ from datetime import datetime
 from pathlib import Path
 
 # ─── DB 路径 ───────────────────────────────────────────────
-HVOS = r"C:\Users\Administrator\AppData\Local\hermes\hvos"
-KG_DB = rf"{HVOS}\knowledge-graph\kg.db"
-STRATEGY_DB = rf"{HVOS}\knowledge-graph\strategy_memory.db"
-AGENT_DB = rf"{HVOS}\knowledge-graph\agent_factory.db"
-ES_DB = rf"{HVOS}\reality\events.db"
+HVOS = os.path.dirname(os.path.abspath(__file__))
+KG_DB = os.path.join(HVOS, "knowledge_graph", "kg.db")
+STRATEGY_DB = os.path.join(HVOS, "knowledge_graph", "strategy_memory.db")
+AGENT_DB = os.path.join(HVOS, "knowledge_graph", "agent_factory.db")
+ES_DB = os.path.join(HVOS, "reality", "events.db")
 
 # ─── 导入 V9.0 模块（直接文件路径） ──────────────────────
-sys.path.insert(0, rf"{HVOS}\knowledge-graph")
+sys.path.insert(0, rf"{HVOS}\knowledge_graph")
 sys.path.insert(0, HVOS)
 
 from kg_event_consumer import KGEventConsumer
@@ -47,7 +48,7 @@ from causal_reasoner import CausalReasoningEngine
 from agent_ecology import AgentEcologyEngine
 
 # V9.2 模块
-sys.path.insert(0, rf"{HVOS}\knowledge-graph")
+sys.path.insert(0, rf"{HVOS}\knowledge_graph")
 from learning_loop import LearningLoop, ErrorAttributionEngine
 
 
