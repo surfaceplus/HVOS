@@ -134,9 +134,9 @@ class CausalReasoningEngine:
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT event_id, event_type, actor, description, timestamp, data
+            SELECT event_id, event_type, source AS actor, event_type AS description, timestamp, payload AS data
             FROM event_log
-            WHERE opportunity_id = ?
+            WHERE partition_key = ?
             ORDER BY timestamp
         """, (opp_id,))
 
